@@ -1,5 +1,5 @@
 [package]
-name = "rust-util"
+name = "cliff3_rust_util"
 version = "0.1.0"
 edition = "2021"
 authors = ["JoonHo Son <joonho.son@me.com>"]
