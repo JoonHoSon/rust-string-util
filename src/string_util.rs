@@ -181,8 +181,8 @@ lazy_static! {
 }
 
 /// 주어진 이메일 주소의 유효성 검사 결과를 반환한다. 만약 대상 문자열이 `None`일 경우 [`ErrorKind::InvalidData`]를 반환한다.
+/// TODO(joonho): 2023-10-03 한글 도메인 및 ID 포함
 pub fn validate_email(target: Option<&str>) -> Result<bool, io::Error> {
-    //let p: Regex = Regex::new(r"^[\w\-]+(\.[\w\-]+)*@([A-Za-z0-9-]+\.)+[A-Za-z]{2,4}$").unwrap();
     match target {
         None => {
             let invalid_data =
@@ -223,5 +223,29 @@ mod tests {
     #[should_panic]
     pub fn invalid_email_should_panic_test() {
         validate_email(None).unwrap();
+    }
+
+    #[test]
+    pub fn korean_domain_fail_test() {
+        let mut email = "한글ID@test.com";
+
+        assert!(
+            !validate_email(Some(email)).is_err(),
+            "한글 ID를 포함하는 이메일 검사 실패"
+        );
+
+        email = "test@한글도메인.com";
+
+        assert!(
+            !validate_email(Some(email)).is_err(),
+            "한글 도메인을 포함하는 이메일 검사 실패"
+        );
+
+        email = "홍길동@한글도메인.com";
+
+        assert!(
+            !validate_email(Some(email)).is_err(),
+            "한글 ID 및 한글 도메인을 포함하는 이메일 검사 실패"
+        );
     }
 }
