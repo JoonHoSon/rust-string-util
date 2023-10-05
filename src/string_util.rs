@@ -29,156 +29,156 @@ lazy_static! {
     // 한글 관련
     // -----------------------------------------------------------------------------------------------------------------
     /// 한글 자음(초성)
-    static ref KO_CONSONANTS: Vec<&'static str> = vec![
-        "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ",
-        "ㅌ", "ㅍ", "ㅎ",
+    static ref KO_CONSONANTS: Vec<char> = vec![
+        'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ',
+        'ㅌ', 'ㅍ', 'ㅎ',
     ];
 
     /// 한글 자음 분해(된소리 포함)
-    static ref KO_SEPARATED_CONSONANTS: Vec<Vec<&'static str>> = vec![
-        vec!["ㄱ"],
-        vec!["ㄱ", "ㄱ"],
-        vec!["ㄴ"],
-        vec!["ㄷ"],
-        vec!["ㄷ", "ㄷ"],
-        vec!["ㄹ"],
-        vec!["ㅁ"],
-        vec!["ㅂ"],
-        vec!["ㅂ", "ㅂ"],
-        vec!["ㅅ"],
-        vec!["ㅅ", "ㅅ"],
-        vec!["ㅇ"],
-        vec!["ㅈ"],
-        vec!["ㅈ", "ㅈ"],
-        vec!["ㅊ"],
-        vec!["ㅋ"],
-        vec!["ㅌ"],
-        vec!["ㅍ"],
-        vec!["ㅎ"],
+    static ref KO_SEPARATED_CONSONANTS: Vec<Vec<char>> = vec![
+        vec!['ㄱ'],
+        vec!['ㄱ', 'ㄱ'],
+        vec!['ㄴ'],
+        vec!['ㄷ'],
+        vec!['ㄷ', 'ㄷ'],
+        vec!['ㄹ'],
+        vec!['ㅁ'],
+        vec!['ㅂ'],
+        vec!['ㅂ', 'ㅂ'],
+        vec!['ㅅ'],
+        vec!['ㅅ', 'ㅅ'],
+        vec!['ㅇ'],
+        vec!['ㅈ'],
+        vec!['ㅈ', 'ㅈ'],
+        vec!['ㅊ'],
+        vec!['ㅋ'],
+        vec!['ㅌ'],
+        vec!['ㅍ'],
+        vec!['ㅎ'],
     ];
 
     /// 한글 모음
-    static ref KO_VOWELS: Vec<&'static str> = vec![
-        "ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ",
-        "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ",
+    static ref KO_VOWELS: Vec<char> = vec![
+        'ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ',
+        'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ',
     ];
 
     /// 한글 모음 분해
-    static ref KO_SEPARATED_VOWELS: Vec<Vec<&'static str>> = vec![
-        vec!["ㅏ"],
-        vec!["ㅐ"],
-        vec!["ㅑ"],
-        vec!["ㅒ"],
-        vec!["ㅓ"],
-        vec!["ㅔ"],
-        vec!["ㅕ"],
-        vec!["ㅖ"],
-        vec!["ㅗ"],
-        vec!["ㅗ", "ㅏ"],
-        vec!["ㅗ", "ㅐ"],
-        vec!["ㅗ", "ㅣ"],
-        vec!["ㅛ"],
-        vec!["ㅜ"],
-        vec!["ㅜ", "ㅓ"],
-        vec!["ㅜ", "ㅔ"],
-        vec!["ㅜ", "ㅣ"],
-        vec!["ㅠ"],
-        vec!["ㅡ"],
-        vec!["ㅡ", "ㅣ"],
-        vec!["ㅣ"],
+    static ref KO_SEPARATED_VOWELS: Vec<Vec<char>> = vec![
+        vec!['ㅏ'],
+        vec!['ㅐ'],
+        vec!['ㅑ'],
+        vec!['ㅒ'],
+        vec!['ㅓ'],
+        vec!['ㅔ'],
+        vec!['ㅕ'],
+        vec!['ㅖ'],
+        vec!['ㅗ'],
+        vec!['ㅗ', 'ㅏ'],
+        vec!['ㅗ', 'ㅐ'],
+        vec!['ㅗ', 'ㅣ'],
+        vec!['ㅛ'],
+        vec!['ㅜ'],
+        vec!['ㅜ', 'ㅓ'],
+        vec!['ㅜ', 'ㅔ'],
+        vec!['ㅜ', 'ㅣ'],
+        vec!['ㅠ'],
+        vec!['ㅡ'],
+        vec!['ㅡ', 'ㅣ'],
+        vec!['ㅣ'],
     ];
 
     /// 한글 받침
-    static ref KO_FINAL_CONSONANTS: Vec<&'static str> = vec![
-        "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ",
-        "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ",
+    static ref KO_FINAL_CONSONANTS: Vec<char> = vec![
+        0 as char, 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ',
+        'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
     ];
 
     /// 한글 받침 분해
-    static ref KO_SEPARATED_FINAL_CONSONANTS: Vec<Vec<&'static str>> = vec![
+    static ref KO_SEPARATED_FINAL_CONSONANTS: Vec<Vec<char>> = vec![
         vec![],
-        vec!["ㄱ"],
-        vec!["ㄱ", "ㄱ"],
-        vec!["ㄱ", "ㅅ"],
-        vec!["ㄴ"],
-        vec!["ㄴ", "ㅈ"],
-        vec!["ㄴ", "ㅎ"],
-        vec!["ㄷ"],
-        vec!["ㄹ"],
-        vec!["ㄹ", "ㄱ"],
-        vec!["ㄹ", "ㅁ"],
-        vec!["ㄹ", "ㅂ"],
-        vec!["ㄹ", "ㅅ"],
-        vec!["ㄹ", "ㅌ"],
-        vec!["ㄹ", "ㅍ"],
-        vec!["ㄹ", "ㅎ"],
-        vec!["ㅁ"],
-        vec!["ㅂ"],
-        vec!["ㅂ", "ㅅ"],
-        vec!["ㅅ"],
-        vec!["ㅅ", "ㅅ"],
-        vec!["ㅇ"],
-        vec!["ㅈ"],
-        vec!["ㅊ"],
-        vec!["ㅋ"],
-        vec!["ㅌ"],
-        vec!["ㅍ"],
-        vec!["ㅎ"],
+        vec!['ㄱ'],
+        vec!['ㄱ', 'ㄱ'],
+        vec!['ㄱ', 'ㅅ'],
+        vec!['ㄴ'],
+        vec!['ㄴ', 'ㅈ'],
+        vec!['ㄴ', 'ㅎ'],
+        vec!['ㄷ'],
+        vec!['ㄹ'],
+        vec!['ㄹ', 'ㄱ'],
+        vec!['ㄹ', 'ㅁ'],
+        vec!['ㄹ', 'ㅂ'],
+        vec!['ㄹ', 'ㅅ'],
+        vec!['ㄹ', 'ㅌ'],
+        vec!['ㄹ', 'ㅍ'],
+        vec!['ㄹ', 'ㅎ'],
+        vec!['ㅁ'],
+        vec!['ㅂ'],
+        vec!['ㅂ', 'ㅅ'],
+        vec!['ㅅ'],
+        vec!['ㅅ', 'ㅅ'],
+        vec!['ㅇ'],
+        vec!['ㅈ'],
+        vec!['ㅊ'],
+        vec!['ㅋ'],
+        vec!['ㅌ'],
+        vec!['ㅍ'],
+        vec!['ㅎ'],
     ];
 
     /// 한글 쌍자음/이중 모음 분해
-    static ref KO_SEPARATED_FORTES_VOWELS: Vec<Vec<&'static str>> = vec![
-        vec!["ㄱ"],
-        vec!["ㄱ", "ㄱ"],
-        vec!["ㄱ", "ㅅ"],
-        vec!["ㄴ"],
-        vec!["ㄴ", "ㅈ"],
-        vec!["ㄴ", "ㅎ"],
-        vec!["ㄷ"],
-        vec!["ㄸ"],
-        vec!["ㄹ"],
-        vec!["ㄹ", "ㄱ"],
-        vec!["ㄹ", "ㅁ"],
-        vec!["ㄹ", "ㅂ"],
-        vec!["ㄹ", "ㅅ"],
-        vec!["ㄹ", "ㄷ"],
-        vec!["ㄹ", "ㅍ"],
-        vec!["ㄹ", "ㅎ"],
-        vec!["ㅁ"],
-        vec!["ㅂ"],
-        vec!["ㅂ", "ㅂ"],
-        vec!["ㅂ", "ㅅ"],
-        vec!["ㅅ"],
-        vec!["ㅅ", "ㅅ"],
-        vec!["ㅇ"],
-        vec!["ㅈ"],
-        vec!["ㅈ", "ㅈ"],
-        vec!["ㅊ"],
-        vec!["ㅋ"],
-        vec!["ㅌ"],
-        vec!["ㅍ"],
-        vec!["ㅎ"],
-        vec!["ㅏ"],
-        vec!["ㅐ"],
-        vec!["ㅑ"],
-        vec!["ㅒ"],
-        vec!["ㅓ"],
-        vec!["ㅔ"],
-        vec!["ㅕ"],
-        vec!["ㅖ"],
-        vec!["ㅗ"],
-        vec!["ㅗ", "ㅏ"],
-        vec!["ㅗ", "ㅐ"],
-        vec!["ㅗ", "ㅣ"],
-        vec!["ㅛ"],
-        vec!["ㅜ"],
-        vec!["ㅜ", "ㅓ"],
-        vec!["ㅜ", "ㅔ"],
-        vec!["ㅜ", "ㅣ"],
-        vec!["ㅠ"],
-        vec!["ㅡ"],
-        vec!["ㅡ", "ㅣ"],
-        vec!["ㅣ"],
+    static ref KO_SEPARATED_FORTES_VOWELS: Vec<Vec<char>> = vec![
+        vec!['ㄱ'],
+        vec!['ㄱ', 'ㄱ'],
+        vec!['ㄱ', 'ㅅ'],
+        vec!['ㄴ'],
+        vec!['ㄴ', 'ㅈ'],
+        vec!['ㄴ', 'ㅎ'],
+        vec!['ㄷ'],
+        vec!['ㄸ'],
+        vec!['ㄹ'],
+        vec!['ㄹ', 'ㄱ'],
+        vec!['ㄹ', 'ㅁ'],
+        vec!['ㄹ', 'ㅂ'],
+        vec!['ㄹ', 'ㅅ'],
+        vec!['ㄹ', 'ㄷ'],
+        vec!['ㄹ', 'ㅍ'],
+        vec!['ㄹ', 'ㅎ'],
+        vec!['ㅁ'],
+        vec!['ㅂ'],
+        vec!['ㅂ', 'ㅂ'],
+        vec!['ㅂ', 'ㅅ'],
+        vec!['ㅅ'],
+        vec!['ㅅ', 'ㅅ'],
+        vec!['ㅇ'],
+        vec!['ㅈ'],
+        vec!['ㅈ', 'ㅈ'],
+        vec!['ㅊ'],
+        vec!['ㅋ'],
+        vec!['ㅌ'],
+        vec!['ㅍ'],
+        vec!['ㅎ'],
+        vec!['ㅏ'],
+        vec!['ㅐ'],
+        vec!['ㅑ'],
+        vec!['ㅒ'],
+        vec!['ㅓ'],
+        vec!['ㅔ'],
+        vec!['ㅕ'],
+        vec!['ㅖ'],
+        vec!['ㅗ'],
+        vec!['ㅗ', 'ㅏ'],
+        vec!['ㅗ', 'ㅐ'],
+        vec!['ㅗ', 'ㅣ'],
+        vec!['ㅛ'],
+        vec!['ㅜ'],
+        vec!['ㅜ', 'ㅓ'],
+        vec!['ㅜ', 'ㅔ'],
+        vec!['ㅜ', 'ㅣ'],
+        vec!['ㅠ'],
+        vec!['ㅡ'],
+        vec!['ㅡ', 'ㅣ'],
+        vec!['ㅣ'],
     ];
 }
 
@@ -210,12 +210,69 @@ pub fn extract_initial_consonant(target: Option<&str>) -> Result<String, Missing
         None => Err(MissingArgumentError),
         Some(v) => {
             let result = {
-                let mut characters = v.chars();
-                let mut temp = String::new();
+                let mut temp = String::with_capacity(v.chars().count()); // 글자수 만큼 미리 생성
 
                 for (idx, t) in v.chars().enumerate() {
                     if t >= '가' && t <= '힣' {
-                        temp += KO_CONSONANTS[((t as u32 - '가' as u32) / 588) as usize];
+                        temp += KO_CONSONANTS[((t as u32 - '가' as u32) / 588) as usize]
+                            .to_string()
+                            .as_str();
+                    } else {
+                        temp += t.to_string().as_str();
+                    }
+                }
+
+                temp
+            };
+
+            Ok(result)
+        }
+    }
+}
+
+/// 주어진 문자열에서 한글을 초/중/종성으로 분리.
+///
+/// 쌍자음, 겹받침, 이중 모음은 분리하지 않는다. TODO(joonho): 2023-10-04 주석 추가
+///
+/// ```
+/// use cliff3_rust_util::string_util::separate_consonant_vowel;
+///
+/// let mut target = "한글과 English가 함께";
+/// let mut result = separate_consonant_vowel(Some(target)).unwrap();
+///
+/// assert_eq!("ㅎㅏㄴㄱㅡㄹㄱㅘ Englishㄱㅏ ㅎㅏㅁㄲㅔ", result.as_str());
+///
+/// target = "많이 주세요.";
+/// result = separate_consonant_vowel(Some(target)).unwrap();
+///
+/// assert_eq!("ㅁㅏㄶㅇㅣ ㅈㅜㅅㅔㅇㅛ.", result.as_str());
+/// ```
+pub fn separate_consonant_vowel(target: Option<&str>) -> Result<String, MissingArgumentError> {
+    match target {
+        None => Err(MissingArgumentError),
+        Some(v) => {
+            let result = {
+                let mut temp = String::with_capacity(v.chars().count() * 3); // 초/중/종성 3개로 분리
+                let mut consonant: u32;
+                let start = '가' as u32;
+
+                for (idx, t) in v.chars().enumerate() {
+                    if t >= '가' && t <= '힣' {
+                        consonant = t as u32 - start;
+
+                        temp += KO_CONSONANTS[(consonant / 588) as usize]
+                            .to_string()
+                            .as_str();
+
+                        consonant = consonant % 588;
+
+                        temp += KO_VOWELS[(consonant / 28) as usize].to_string().as_str();
+
+                        consonant = consonant % 28;
+
+                        if consonant != 0 {
+                            temp += KO_FINAL_CONSONANTS[consonant as usize].to_string().as_str();
+                        }
                     } else {
                         temp += t.to_string().as_str();
                     }
@@ -339,6 +396,53 @@ mod tests {
             "ㅇㄱ ㅇㅁㅌㅋ(❤😑😊😂)ㅇ ㅍㅎㅎㄴㄷ.",
             result.as_str(),
             "한글과 이모티콘이 혼재되어 있을 경우 추출 실패"
+        );
+    }
+
+    #[test]
+    pub fn separate_consonant_test() {
+        let mut target = "한글만";
+        let mut result = separate_consonant_vowel(Some(target)).unwrap();
+
+        println!("separate result : {}", result);
+
+        assert_eq!(
+            "ㅎㅏㄴㄱㅡㄹㅁㅏㄴ",
+            result.as_str(),
+            "한글만 있는 초/중/종성 분리 실패"
+        );
+
+        target = "한글과 English가 함께";
+        result = separate_consonant_vowel(Some(target)).unwrap();
+
+        println!("separate result : {}", result);
+
+        assert_eq!(
+            "ㅎㅏㄴㄱㅡㄹㄱㅘ Englishㄱㅏ ㅎㅏㅁㄲㅔ",
+            result.as_str(),
+            "한글과 영어가 혼재되어 있을 경우 초/중/종성 분리 실패"
+        );
+
+        target = "맑음";
+        result = separate_consonant_vowel(Some(target)).unwrap();
+
+        println!("separate result : {}", result);
+
+        assert_eq!(
+            "ㅁㅏㄺㅇㅡㅁ",
+            result.as_str(),
+            "겹받침이 있을 경우 초/중/종성 분리 실패"
+        );
+
+        target = "많이 주세요.";
+        result = separate_consonant_vowel(Some(target)).unwrap();
+
+        print!("separate result : {}", result);
+
+        assert_eq!(
+            "ㅁㅏㄶㅇㅣ ㅈㅜㅅㅔㅇㅛ.",
+            result.as_str(),
+            "겹받침이 있을 경우 초/중/종성 분리 실패"
         );
     }
 }
