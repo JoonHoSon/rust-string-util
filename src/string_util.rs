@@ -214,7 +214,7 @@ pub fn extract_initial_consonant(target: Option<&str>) -> Result<String, Missing
 
                 for (idx, t) in v.chars().enumerate() {
                     if t >= '가' && t <= '힣' {
-                        temp += KO_CONSONANTS[((t as u32 - '가' as u32) / 588) as usize]
+                        temp += KO_CONSONANTS[(((t as u32) - ('가' as u32)) / 588) as usize]
                             .to_string()
                             .as_str();
                     } else {
@@ -258,21 +258,70 @@ pub fn separate_consonant_vowel(target: Option<&str>) -> Result<String, MissingA
 
                 for (idx, t) in v.chars().enumerate() {
                     if t >= '가' && t <= '힣' {
-                        consonant = t as u32 - start;
+                        consonant = (t as u32) - start;
 
+                        // 초성
                         temp += KO_CONSONANTS[(consonant / 588) as usize]
                             .to_string()
                             .as_str();
-
                         consonant = consonant % 588;
 
+                        // 중성
                         temp += KO_VOWELS[(consonant / 28) as usize].to_string().as_str();
-
                         consonant = consonant % 28;
 
                         if consonant != 0 {
+                            // 종성
                             temp += KO_FINAL_CONSONANTS[consonant as usize].to_string().as_str();
                         }
+                    } else {
+                        temp += t.to_string().as_str();
+                    }
+                }
+
+                temp
+            };
+
+            Ok(result)
+        }
+    }
+}
+
+pub fn separate_consonant_vowel_completely(
+    target: Option<&str>,
+) -> Result<String, MissingArgumentError> {
+    match target {
+        None => Err(MissingArgumentError),
+        Some(v) => {
+            // 한 글자당 최대 6자가 될 수 있음
+            // 꽊 -> ㄱㄱㅗㅏㄱㄱ
+            let result = {
+                let mut temp = String::with_capacity(v.chars().count() * 6);
+                let mut consonant: u32;
+                let start = '가' as u32;
+
+                for (idx, t) in v.chars().enumerate() {
+                    if t >= '가' && t <= '힣' {
+                        consonant = (t as u32) - start;
+
+                        // 초성
+                        temp += KO_CONSONANTS[(consonant / 588) as usize]
+                            .to_string()
+                            .as_str();
+                        consonant %= 588;
+
+                        // 중성
+                        temp += KO_VOWELS[(consonant / 28) as usize].to_string().as_str();
+                        consonant %= 28;
+
+                        if consonant != 0 {
+                            //종성
+                            temp += KO_FINAL_CONSONANTS[consonant as usize].to_string().as_str();
+                        }
+                    } else if t >= 'ㄱ' && t <= 'ㅣ' {
+                        temp += KO_SEPARATED_FORTES_VOWELS[((t as u32) - ('ㄱ' as u32)) as usize]
+                            .to_string()
+                            .as_str();
                     } else {
                         temp += t.to_string().as_str();
                     }
