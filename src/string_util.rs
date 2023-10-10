@@ -570,13 +570,13 @@ mod tests {
             "쌍자음, 이중 모음이 있을 경우 분리 실패"
         );
 
-        target = "꽊많이 줬으면 좋겠어요❤❤.";
+        target = "꽊많이 줬으면 좋겠어요1❤❤.";
         result = separate_consonant_vowel_completely(Some(target)).unwrap();
 
         println!("separate result : {}", result);
 
         assert_eq!(
-            "ㄱㄱㅗㅏㄱㄱㅁㅏㄴㅎㅇㅣ ㅈㅜㅓㅅㅅㅇㅡㅁㅕㄴ ㅈㅗㅎㄱㅔㅅㅅㅇㅓㅇㅛ❤❤.",
+            "ㄱㄱㅗㅏㄱㄱㅁㅏㄴㅎㅇㅣ ㅈㅜㅓㅅㅅㅇㅡㅁㅕㄴ ㅈㅗㅎㄱㅔㅅㅅㅇㅓㅇㅛ1❤❤.",
             result.as_str(),
             "쌍자음, 이중모음이 있을 경우 분리 실패"
         );
