@@ -232,22 +232,29 @@ pub fn extract_initial_consonant(target: Option<&str>) -> Result<String, Missing
 
 /// 주어진 문자열에서 한글을 초/중/종성으로 분리.
 ///
-/// 쌍자음, 겹받침, 이중 모음은 분리하지 않는다. TODO(joonho): 2023-10-04 주석 추가
+/// 초성의 된소리, 중성의 이중모음 및 종성의 겹받침은 분리하지 않는다.
+/// 만약 모든 자음 모음의 완전한 분해가 필요한 경우 [`separate_consonant_vowel_completely`]를 사용한다.
+///
+/// * 초성이 된소리여도 그대로 처리(`ㄲ` -> `ㄲ`, `ㅆ` -> `ㅆ`)
+/// * 중성이 이중 모음이어도 그대로 처리 (`ㅘ` -> `ㅘ`, `ㅙ` ->`ㅙ`)
+/// * 종성이 겹받침이어도 그대로 처리 (`ㄶ` -> `ㄶ`, `ㄺ` -> `ㄺ`)
 ///
 /// ```
-/// use cliff3_rust_util::string_util::separate_consonant_vowel;
+/// use cliff3_rust_util::string_util::separate_simple_consonant_vowel;
 ///
 /// let mut target = "한글과 English가 함께";
-/// let mut result = separate_consonant_vowel(Some(target)).unwrap();
+/// let mut result = separate_simple_consonant_vowel(Some(target)).unwrap();
 ///
 /// assert_eq!("ㅎㅏㄴㄱㅡㄹㄱㅘ Englishㄱㅏ ㅎㅏㅁㄲㅔ", result.as_str());
 ///
 /// target = "많이 주세요.";
-/// result = separate_consonant_vowel(Some(target)).unwrap();
+/// result = separate_simple_consonant_vowel(Some(target)).unwrap();
 ///
 /// assert_eq!("ㅁㅏㄶㅇㅣ ㅈㅜㅅㅔㅇㅛ.", result.as_str());
 /// ```
-pub fn separate_consonant_vowel(target: Option<&str>) -> Result<String, MissingArgumentError> {
+pub fn separate_simple_consonant_vowel(
+    target: Option<&str>,
+) -> Result<String, MissingArgumentError> {
     match target {
         None => Err(MissingArgumentError),
         Some(v) => {
@@ -287,6 +294,25 @@ pub fn separate_consonant_vowel(target: Option<&str>) -> Result<String, MissingA
     }
 }
 
+/// 주어진 문자열에서 한글을 초/중/종성으로 완전 분리.
+///
+/// [`separate_simple_consonant_vowel`]과 달리 모든 자음/모음을 완전히 분리한다.
+///
+/// * 초성이 된소리일 경우 분해 (`ㄲ` -> `ㄱㄱ`, `ㅆ` -> `ㅅㅅ`)
+/// * 중성이 이중 모음일 경우 분해 (`ㅘ` -> `ㅗㅏ`, `ㅙ` -> `ㅗㅐ`)
+/// * 종성이 겹받침일 경우 분해 (`ㄶ` -> `ㄴㅎ`, `ㄺ` -> `ㄹㄱ`)
+///
+/// ```
+/// use cliff3_rust_util::string_util::separate_consonant_vowel_completely;
+/// let target = r#""투표율을 40%(percentage) 초중반대는 충분히 되지 않을까 생각한다"며 말문을 뗐다."#;
+/// let result = separate_consonant_vowel_completely(Some(target)).unwrap();
+///
+/// assert_eq!(
+///     r#""ㅌㅜㅍㅛㅇㅠㄹㅇㅡㄹ 40%(percentage) ㅊㅗㅈㅜㅇㅂㅏㄴㄷㅐㄴㅡㄴ ㅊㅜㅇㅂㅜㄴㅎㅣ ㄷㅗㅣㅈㅣ ㅇㅏㄴㅎㅇㅡㄹㄱㄱㅏ ㅅㅐㅇㄱㅏㄱㅎㅏㄴㄷㅏ"ㅁㅕ ㅁㅏㄹㅁㅜㄴㅇㅡㄹ ㄷㄷㅔㅅㅅㄷㅏ."#,,
+///     result.as_str(),
+///     "쌍자음, 이중 모음이 있을 경우 분리 실패"
+/// );
+/// ```
 pub fn separate_consonant_vowel_completely(
     target: Option<&str>,
 ) -> Result<String, MissingArgumentError> {
@@ -302,39 +328,42 @@ pub fn separate_consonant_vowel_completely(
 
                 for (idx, t) in v.chars().enumerate() {
                     if t >= '가' && t <= '힣' {
-                        println!("loop character(가 ~ 힣) : {}", t);
                         consonant = (t as u32) - start;
 
-                        // 초성
-                        temp += KO_CONSONANTS[(consonant / 588) as usize]
-                            .to_string()
-                            .as_str();
+                        // 초성. 된소리가 포함된 자음을 기준으로 처리
+                        KO_SEPARATED_CONSONANTS[(consonant / 588) as usize]
+                            .iter()
+                            .for_each(|m| {
+                                temp += m.to_string().as_str();
+                            });
+
                         consonant %= 588;
 
-                        // 중성
-                        temp += KO_VOWELS[(consonant / 28) as usize].to_string().as_str();
+                        // 중성. 모음 분해 기준으로 처리
+                        KO_SEPARATED_VOWELS[(consonant / 28) as usize]
+                            .iter()
+                            .for_each(|m| {
+                                temp += m.to_string().as_str();
+                            });
+
                         consonant %= 28;
 
                         if consonant != 0 {
-                            //종성
-                            temp += KO_FINAL_CONSONANTS[consonant as usize].to_string().as_str();
+                            //종성. 받침 분해 기준으로 처리
+                            KO_SEPARATED_FINAL_CONSONANTS[consonant as usize]
+                                .iter()
+                                .for_each(|m| {
+                                    temp += m.to_string().as_str();
+                                });
                         }
                     } else if t >= 'ㄱ' && t <= 'ㅣ' {
-                        println!("loop character(ㄱ ~ ㅣ) : {}", t);
                         // temp += KO_SEPARATED_FORTES_VOWELS[((t as u32) - ('ㄱ' as u32)) as usize]
                         //     .iter()
                         //     .collect::<String>()
                         //     .as_str();
-                        println!(
-                            "character count : {}",
-                            KO_SEPARATED_FORTES_VOWELS[((t as u32) - ('ㄱ' as u32)) as usize]
-                                .iter()
-                                .count()
-                        );
                         KO_SEPARATED_FORTES_VOWELS[((t as u32) - ('ㄱ' as u32)) as usize]
                             .iter()
                             .for_each(|m| {
-                                println!("m => {}", m);
                                 temp += m.to_string().as_str();
                             })
                     } else {
@@ -355,7 +384,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore]
     pub fn validate_email_test() {
         let mut email = "joonho.son@me.com";
         let mut result = validate_email(Some(email));
@@ -388,14 +416,12 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     #[should_panic]
     pub fn invalid_email_should_panic_test() {
         validate_email(None).unwrap();
     }
 
     #[test]
-    #[ignore]
     pub fn korean_domain_fail_test() {
         let mut email = "한글ID@test.com";
 
@@ -420,7 +446,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     pub fn extract_initial_consonant_test() {
         let mut target = "한글만 있습니다.";
         let mut result = extract_initial_consonant(Some(target)).unwrap();
@@ -468,10 +493,9 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     pub fn separate_consonant_vowel_test() {
         let mut target = "한글만";
-        let mut result = separate_consonant_vowel(Some(target)).unwrap();
+        let mut result = separate_simple_consonant_vowel(Some(target)).unwrap();
 
         println!("separate result : {}", result);
 
@@ -482,7 +506,7 @@ mod tests {
         );
 
         target = "한글과 English가 함께";
-        result = separate_consonant_vowel(Some(target)).unwrap();
+        result = separate_simple_consonant_vowel(Some(target)).unwrap();
 
         println!("separate result : {}", result);
 
@@ -493,7 +517,7 @@ mod tests {
         );
 
         target = "맑음";
-        result = separate_consonant_vowel(Some(target)).unwrap();
+        result = separate_simple_consonant_vowel(Some(target)).unwrap();
 
         println!("separate result : {}", result);
 
@@ -504,7 +528,7 @@ mod tests {
         );
 
         target = "많이 주세요.";
-        result = separate_consonant_vowel(Some(target)).unwrap();
+        result = separate_simple_consonant_vowel(Some(target)).unwrap();
 
         print!("separate result : {}", result);
 
@@ -513,6 +537,13 @@ mod tests {
             result.as_str(),
             "겹받침이 있을 경우 초/중/종성 분리 실패"
         );
+
+        target = "꽊꽊이";
+        result = separate_simple_consonant_vowel(Some(target)).unwrap();
+
+        println!("separate result : {}", result);
+
+        assert_eq!("ㄲㅘㄲㄲㅘㄲㅇㅣ", result.as_str());
     }
 
     #[test]
@@ -533,10 +564,33 @@ mod tests {
 
         println!("separate result : {}", result);
 
-        // assert_eq!(
-        //     "ㄱㄱㅗㅏㄱㄱㄱㄱㅗㅏㄱㄱㅇㅣ",
-        //     result.as_str(),
-        //     "쌍자음, 이중 모음이 있을 경우 분리 실패"
-        // );
+        assert_eq!(
+            "ㄱㄱㅗㅏㄱㄱㄱㄱㅗㅏㄱㄱㅇㅣ",
+            result.as_str(),
+            "쌍자음, 이중 모음이 있을 경우 분리 실패"
+        );
+
+        target = "꽊많이 줬으면 좋겠어요❤❤.";
+        result = separate_consonant_vowel_completely(Some(target)).unwrap();
+
+        println!("separate result : {}", result);
+
+        assert_eq!(
+            "ㄱㄱㅗㅏㄱㄱㅁㅏㄴㅎㅇㅣ ㅈㅜㅓㅅㅅㅇㅡㅁㅕㄴ ㅈㅗㅎㄱㅔㅅㅅㅇㅓㅇㅛ❤❤.",
+            result.as_str(),
+            "쌍자음, 이중모음이 있을 경우 분리 실패"
+        );
+
+        target =
+            r#""투표율을 40%(percentage) 초중반대는 충분히 되지 않을까 생각한다"며 말문을 뗐다."#;
+        result = separate_consonant_vowel_completely(Some(target)).unwrap();
+
+        println!("separate result : {}", result);
+
+        assert_eq!(
+            r#""ㅌㅜㅍㅛㅇㅠㄹㅇㅡㄹ 40%(percentage) ㅊㅗㅈㅜㅇㅂㅏㄴㄷㅐㄴㅡㄴ ㅊㅜㅇㅂㅜㄴㅎㅣ ㄷㅗㅣㅈㅣ ㅇㅏㄴㅎㅇㅡㄹㄱㄱㅏ ㅅㅐㅇㄱㅏㄱㅎㅏㄴㄷㅏ"ㅁㅕ ㅁㅏㄹㅁㅜㄴㅇㅡㄹ ㄷㄷㅔㅅㅅㄷㅏ."#,
+            result.as_str(),
+            "쌍자음, 이중모음, 특수 기호를 포함하는 경우 분리 실패"
+        );
     }
 }
