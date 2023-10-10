@@ -308,7 +308,7 @@ pub fn separate_simple_consonant_vowel(
 /// let result = separate_consonant_vowel_completely(Some(target)).unwrap();
 ///
 /// assert_eq!(
-///     r#""ㅌㅜㅍㅛㅇㅠㄹㅇㅡㄹ 40%(percentage) ㅊㅗㅈㅜㅇㅂㅏㄴㄷㅐㄴㅡㄴ ㅊㅜㅇㅂㅜㄴㅎㅣ ㄷㅗㅣㅈㅣ ㅇㅏㄴㅎㅇㅡㄹㄱㄱㅏ ㅅㅐㅇㄱㅏㄱㅎㅏㄴㄷㅏ"ㅁㅕ ㅁㅏㄹㅁㅜㄴㅇㅡㄹ ㄷㄷㅔㅅㅅㄷㅏ."#,,
+///     r#""ㅌㅜㅍㅛㅇㅠㄹㅇㅡㄹ 40%(percentage) ㅊㅗㅈㅜㅇㅂㅏㄴㄷㅐㄴㅡㄴ ㅊㅜㅇㅂㅜㄴㅎㅣ ㄷㅗㅣㅈㅣ ㅇㅏㄴㅎㅇㅡㄹㄱㄱㅏ ㅅㅐㅇㄱㅏㄱㅎㅏㄴㄷㅏ"ㅁㅕ ㅁㅏㄹㅁㅜㄴㅇㅡㄹ ㄷㄷㅔㅅㅅㄷㅏ."#,
 ///     result.as_str(),
 ///     "쌍자음, 이중 모음이 있을 경우 분리 실패"
 /// );
