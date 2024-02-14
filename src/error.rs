@@ -21,7 +21,25 @@ impl Debug for ValidateError {
 
 /// 인자 누락 오류
 #[derive(PartialEq, Debug)]
-pub struct MissingArgumentError;
+pub struct MissingArgumentError {
+    message: String,
+}
+
+impl Default for MissingArgumentError {
+    fn default() -> Self {
+        MissingArgumentError {
+            message: "인자가 누락되었습니다.".to_owned(),
+        }
+    }
+}
+
+impl MissingArgumentError {
+    pub fn new(message: &str) -> Self {
+        MissingArgumentError {
+            message: message.to_owned(),
+        }
+    }
+}
 
 impl Display for MissingArgumentError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
