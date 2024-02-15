@@ -2,23 +2,6 @@
 
 use std::fmt::{Debug, Display, Formatter};
 
-/// 유효성 오류
-#[derive(PartialEq)]
-#[deprecated(note = "삭제할 것")]
-pub struct ValidateError;
-
-impl Display for ValidateError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Invalidate target error.")
-    }
-}
-
-impl Debug for ValidateError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{{ file : {}, line : {} }}", file!(), line!())
-    }
-}
-
 /// 인자 누락 오류
 #[derive(PartialEq, Debug)]
 pub struct MissingArgumentError {
@@ -44,5 +27,26 @@ impl MissingArgumentError {
 impl Display for MissingArgumentError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Missing argument error.")
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct InvalidArgumentError {
+    message: String,
+}
+
+impl Default for InvalidArgumentError {
+    fn default() -> Self {
+        InvalidArgumentError {
+            message: "유효하지 않은 인자 입니다.".to_owned(),
+        }
+    }
+}
+
+impl InvalidArgumentError {
+    pub fn new(message: &str) -> Self {
+        InvalidArgumentError {
+            message: message.to_owned(),
+        }
     }
 }
