@@ -6,10 +6,12 @@ authors = ["JoonHo Son <joonho.son@me.com>"]
 
 [features]
 string  = []
-encrypt = []
+encrypt = ["sha2/default", "openssl/default"]
 default = ["string", "encrypt"]
 
 [dependencies]
+aes-gcm = { version = "0.10.3", features = ["default"] }
 lazy_static = "1.4.0"
+openssl = "0.10.63"
 regex = "1.10.0"
 sha2 = "0.10.8"
