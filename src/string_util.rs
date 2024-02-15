@@ -375,6 +375,32 @@ pub fn separate_consonant_vowel_completely(
     }
 }
 
+/// 대상 슬라이스를 16진수 형태 문자열로 반환.
+///
+/// # Arguments
+///
+/// * `target` - 원본 데이터
+/// * `to_uppercase` - 대/소문자 출력 형태
+pub fn to_hex(target: Option<&[u8]>, to_uppercase: bool) -> Option<String> {
+    if target.is_none() {
+        return None;
+    }
+
+    let v: Vec<String> = target
+        .unwrap()
+        .iter()
+        .map(|b| {
+            if to_uppercase {
+                format!("{:02X}", b)
+            } else {
+                format!("{:02x}", b)
+            }
+        })
+        .collect();
+
+    return Some(v.join(""));
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -382,7 +408,7 @@ mod tests {
     #[test]
     pub fn validate_email_test() {
         let mut email = "joonho.son@me.com";
-        let mut result = validate_email(Some(email));
+        let result = validate_email(Some(email));
 
         assert!(
             validate_email(Some(email)).unwrap(),
