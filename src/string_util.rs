@@ -552,7 +552,7 @@ mod tests {
         target = "많이 주세요.";
         result = separate_simple_consonant_vowel(Some(target)).unwrap();
 
-        print!("separate result : {}", result);
+        println!("separate result : {}", result);
 
         assert_eq!(
             "ㅁㅏㄶㅇㅣ ㅈㅜㅅㅔㅇㅛ.",

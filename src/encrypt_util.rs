@@ -4,12 +4,14 @@
 //! * [sha256](https://crates.io/crates/sha256)
 //! * [rsa](https://crates.io/crates/rsa)
 
-use openssl::symm::{encrypt, Cipher, Crypter, Mode};
+use openssl::error::ErrorStack;
+use openssl::symm::{encrypt, Cipher};
 use rand::RngCore;
 use sha2::digest::{FixedOutput, HashMarker, Update};
 use sha2::{Digest, Sha256 as sha2_256, Sha512 as sha2_512};
+use std::fmt::{Display, Formatter};
 
-use crate::error::MissingArgumentError;
+use crate::error::{InvalidArgumentError, LibError, MissingArgumentError};
 
 /// 반복 횟수 기본값
 const DEFAULT_REPEAT: u16 = 1_000;
@@ -28,6 +30,7 @@ pub enum Transformation {
 }
 
 /// SHA 256/512
+#[derive(PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum SHA_TYPE {
     SHA_256,
@@ -35,10 +38,43 @@ pub enum SHA_TYPE {
 }
 
 /// AES 128/256
+#[derive(PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum AES_TYPE {
     AES_128,
     AES_256,
+}
+
+pub struct CryptoError {
+    message: String,
+}
+
+impl Default for CryptoError {
+    fn default() -> Self {
+        CryptoError {
+            message: "암호화 처리중 오류가 발생하였습니다.".to_owned(),
+        }
+    }
+}
+
+impl Display for CryptoError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Encrypt/Decrypt error.")
+    }
+}
+
+impl From<&str> for CryptoError {
+    fn from(value: &str) -> Self {
+        CryptoError {
+            message: value.to_owned(),
+        }
+    }
+}
+
+impl LibError for CryptoError {
+    fn get_message(&self) -> &str {
+        self.message.as_str()
+    }
 }
 
 impl Transformation {
@@ -86,12 +122,12 @@ pub fn make_sha_hash(
     salt: Option<&str>,
 ) -> Result<Box<[u8]>, MissingArgumentError> {
     match target {
-        None => Err(MissingArgumentError::new(
+        None => Err(MissingArgumentError::from(
             "Hash 대상 문자열이 지정되지 않았습니다.",
         )),
         Some(v) => {
             if v.is_empty() {
-                return Err(MissingArgumentError::new("Hash 대상이 빈 문자열 입니다."));
+                return Err(MissingArgumentError::from("Hash 대상이 빈 문자열 입니다."));
             }
 
             return match hash_type {
@@ -111,7 +147,7 @@ pub fn make_sha_hash(
                     _hash.update(salt.unwrap().as_bytes());
                 }
 
-                let result = _hash.finalize().to_vec();
+                let result: Vec<u8> = _hash.finalize().to_vec();
 
                 return Ok(Box::from(result.as_slice()));
             }
@@ -119,17 +155,37 @@ pub fn make_sha_hash(
     }
 }
 
+pub struct AESResult {}
+
 pub fn make_aes_encrypt(
     enc_type: AES_TYPE,
     target: Option<&str>,
     secret: &[u8],
     salt: &[u8],
     repeat_count: usize,
-) -> Result<Box<u8>, MissingArgumentError> {
+) -> Result<Box<[u8]>, Box<dyn LibError>> {
     match target {
-        None => MissingArgumentError::new("암호화 대상 문자열이 지정되지 않았습니다."),
+        None => Err(Box::from(MissingArgumentError::from(
+            "암호화 대상 문자열이 지정되지 않았습니다.",
+        ))),
         Some(v) => {
-            let cipher = Cipher::aes_128_cbc();
+            if v.is_empty() {
+                return Err(Box::from(MissingArgumentError::from(
+                    "암호화 대상이 빈 문자열 입니다",
+                )));
+            }
+
+            if salt.len() != 8 {
+                return Err(Box::from(InvalidArgumentError::from(
+                    "Salt is invalid length(must 8 bytes)",
+                )));
+            }
+
+            let cipher = if AES_TYPE::AES_128 == enc_type {
+                Cipher::aes_128_cbc()
+            } else {
+                Cipher::aes_256_cbc()
+            };
             let key_spec = openssl::pkcs5::bytes_to_key(
                 cipher,
                 openssl::hash::MessageDigest::md5(),
@@ -138,30 +194,40 @@ pub fn make_aes_encrypt(
                 repeat_count as i32,
             );
 
+            if key_spec.is_err() {
+                println!("AES error : {:#?}", key_spec.err());
+
+                return Err(Box::from(CryptoError::from(
+                    "AES 암호화 처리 중 오류가 발생하였습니다.",
+                )));
+            }
+
+            let unwrapped_spec = key_spec.unwrap();
+            let key = unwrapped_spec.key;
+            let iv = unwrapped_spec.iv.unwrap();
+
             // let mut iv: [u8; 16] = [0u8; 16];
             //
             // rand::thread_rng().fill_bytes(&mut iv);
 
-            let result = encrypt(
-                cipher,
-                key_spec.unwrap().key.as_slice(),
-                Some(key_spec.unwrap().iv.unwrap().as_slice()),
-                v,
-                ,
-                b"test",
-            );
+            let result: Result<Vec<u8>, ErrorStack> =
+                encrypt(cipher, key.as_slice(), Some(iv.as_slice()), v.as_bytes());
+
+            match result {
+                Ok(vv) => Ok(Box::from(vv.as_slice())),
+                Err(e) => {
+                    println!("AES encrypt error : {:#?}", e);
+
+                    Err(Box::from(InvalidArgumentError::from("암호화 처리 오류")))
+                }
+            }
         }
     }
-
-    todo!()
 }
 
 #[cfg(test)]
 mod tests {
-    use aes_gcm::{
-        aead::{Aead, KeyInit},
-        Aes256Gcm, Key,
-    };
+    use std::any::{Any, TypeId};
 
     use super::*;
 
@@ -172,7 +238,7 @@ mod tests {
 
         assert!(!result.is_err());
 
-        let mut v: Vec<String> = result
+        let v: Vec<String> = result
             .unwrap()
             .iter()
             .map(|b| format!("{:02x}", b))
@@ -187,26 +253,45 @@ mod tests {
         println!("SHA-512 result : {}", v.join(""));
     }
 
+    // #[test]
+    // #[should_panic]
+    // pub fn aes_key_length_mismatch_test() {
+    //     // let key = Aes256Gcm::generate_key(OsRng);
+    //
+    //     // println!("{:#?}", key);
+    //
+    //     // length 32 mismatched
+    //     let key = Key::<Aes256Gcm>::from_slice(b"abc");
+    //     let cipher = Aes256Gcm::new(&key);
+    // }
+
     #[test]
-    #[should_panic]
-    pub fn aes_key_length_mismatch_test() {
-        // let key = Aes256Gcm::generate_key(OsRng);
+    pub fn aes_encrypt_test() {
+        let plain_text = "This 이것 that 저것";
+        let result = make_aes_encrypt(
+            AES_TYPE::AES_128,
+            Some(plain_text),
+            "abc".as_bytes(),
+            "salt".as_bytes(),
+            10,
+        );
 
-        // println!("{:#?}", key);
-
-        // length 32 mismatched
-        let key = Key::<Aes256Gcm>::from_slice(b"abc");
-        let cipher = Aes256Gcm::new(&key);
+        assert!(result.is_err());
+        assert_eq!(
+            result.err().unwrap().type_id(),
+            TypeId::of::<InvalidArgumentError>(),
+            ""
+        );
     }
 
-    #[test]
-    pub fn aes_key_length_match_test() {
-        let key = Key::<Aes256Gcm>::from_slice(b"abcdefghijklmnopqrstuvwxyz123456");
-        let cipher = Some(Aes256Gcm::new(&key));
-
-        assert!(!cipher.is_none());
-        assert_eq!(key.len(), 32);
-
-        cipher.unwrap().encrypt()
-    }
+    // #[test]
+    // pub fn aes_key_length_match_test() {
+    //     let key = Key::<Aes256Gcm>::from_slice(b"abcdefghijklmnopqrstuvwxyz123456");
+    //     let cipher = Some(Aes256Gcm::new(&key));
+    //
+    //     assert!(!cipher.is_none());
+    //     assert_eq!(key.len(), 32);
+    //
+    //     cipher.unwrap().encrypt()
+    // }
 }
