@@ -5,7 +5,6 @@
 use crate::error::MissingArgumentError;
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::ops::Add;
 
 /// 마스킹 처리용 문자
 const APPLY_MASK: &str = "*";

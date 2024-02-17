@@ -4,47 +4,43 @@
 //! * [sha256](https://crates.io/crates/sha256)
 //! * [rsa](https://crates.io/crates/rsa)
 
+use std::fmt::{Display, Formatter};
+
 use openssl::error::ErrorStack;
 use openssl::symm::{encrypt, Cipher};
-use rand::RngCore;
-use sha2::digest::{FixedOutput, HashMarker, Update};
 use sha2::{Digest, Sha256 as sha2_256, Sha512 as sha2_512};
-use std::fmt::{Display, Formatter};
 
 use crate::error::{InvalidArgumentError, LibError, MissingArgumentError};
 
 /// 반복 횟수 기본값
 const DEFAULT_REPEAT: u16 = 1_000;
 
-/// TODO(joonho): 2024-02-14 주석 추가
-#[allow(non_camel_case_types)]
-pub enum Transformation {
-    /// RSA/ECB/PKCS1Padding
-    RSA_ECB_PKCS1PADDING,
+// /// TODO(joonho): 2024-02-14 주석 추가
+// #[allow(non_camel_case_types)]
+// pub enum Transformation {
+//     /// RSA/ECB/PKCS1Padding
+//     RSA_ECB_PKCS1PADDING,
+//
+//     // AES/CBC/PKCS5Padding
+//     AES_CBC_PKCS5PADDING,
+//
+//     /// [`Transformation::RSA_ECB_PKCS1PADDING`]와 동일
+//     RSA,
+// }
+//
+// impl Transformation {
+//     /// [`Transformation`] 항목을 문자열 형태로 반환
+//     pub fn get_transformation(&self) -> &'static str {
+//         match self {
+//             Transformation::RSA_ECB_PKCS1PADDING => "RSA/ECB/PKCS1Padding",
+//             Transformation::AES_CBC_PKCS5PADDING => "AES/CBC/PKCS5Padding",
+//             _ => "RSA/ECB/PKCS1Padding",
+//         }
+//     }
+// }
 
-    // AES/CBC/PKCS5Padding
-    AES_CBC_PKCS5PADDING,
-
-    /// [`Transformation::RSA_ECB_PKCS1PADDING`]와 동일
-    RSA,
-}
-
-/// SHA 256/512
-#[derive(PartialEq)]
-#[allow(non_camel_case_types)]
-pub enum SHA_TYPE {
-    SHA_256,
-    SHA_512,
-}
-
-/// AES 128/256
-#[derive(PartialEq)]
-#[allow(non_camel_case_types)]
-pub enum AES_TYPE {
-    AES_128,
-    AES_256,
-}
-
+// CryptoError -------------------------------------------------------------------------------------
+#[derive(PartialEq, Debug)]
 pub struct CryptoError {
     message: String,
 }
@@ -75,17 +71,27 @@ impl LibError for CryptoError {
     fn get_message(&self) -> &str {
         self.message.as_str()
     }
+
+    fn get_type_name_from_instance(&self) -> &str {
+        std::any::type_name::<CryptoError>()
+    }
 }
 
-impl Transformation {
-    /// [`Transformation`] 항목을 문자열 형태로 반환
-    pub fn get_transformation(&self) -> &'static str {
-        match self {
-            Transformation::RSA_ECB_PKCS1PADDING => "RSA/ECB/PKCS1Padding",
-            Transformation::AES_CBC_PKCS5PADDING => "AES/CBC/PKCS5Padding",
-            _ => "RSA/ECB/PKCS1Padding",
-        }
-    }
+// Define enum -------------------------------------------------------------------------------------
+/// SHA 256/512
+#[derive(PartialEq)]
+#[allow(non_camel_case_types)]
+pub enum SHA_TYPE {
+    SHA_256,
+    SHA_512,
+}
+
+/// AES 128/256
+#[derive(PartialEq)]
+#[allow(non_camel_case_types)]
+pub enum AES_TYPE {
+    AES_128,
+    AES_256,
 }
 
 /// 대상 문자열을 `SHA` 알고리즘을 이용하여 hash 처리 후 반환
@@ -227,8 +233,6 @@ pub fn make_aes_encrypt(
 
 #[cfg(test)]
 mod tests {
-    use std::any::{Any, TypeId};
-
     use super::*;
 
     #[test]
@@ -268,7 +272,7 @@ mod tests {
     #[test]
     pub fn aes_encrypt_test() {
         let plain_text = "This 이것 that 저것";
-        let result = make_aes_encrypt(
+        let result: Result<Box<[u8]>, Box<dyn LibError>> = make_aes_encrypt(
             AES_TYPE::AES_128,
             Some(plain_text),
             "abc".as_bytes(),
@@ -277,11 +281,48 @@ mod tests {
         );
 
         assert!(result.is_err());
-        assert_eq!(
-            result.err().unwrap().type_id(),
-            TypeId::of::<InvalidArgumentError>(),
-            ""
+        // assert_eq!(
+        //     result.err().unwrap().type_id(),
+        //     TypeId::of::<InvalidArgumentError>(),
+        //     ""
+        // );
+        let err = result.err().unwrap();
+        let err_name = err.get_type_name_from_instance();
+
+        println!("err_name : {}", err_name);
+
+        assert_eq!(err_name, std::any::type_name::<InvalidArgumentError>());
+
+        let result = make_aes_encrypt(
+            AES_TYPE::AES_128,
+            Some(plain_text),
+            "abcdefgh".as_bytes(),
+            "saltsalt".as_bytes(),
+            10,
         );
+
+        assert!(!result.is_err());
+
+        println!("에러 아님");
+
+        // unwrap()을 호출하면 에러 발생
+        // LibError 정의시 Debug mixin 필요
+        // 만일 LibError 정의시 Debug mixin을 하지 않을 경우 unwrap_or_default() 호출해야 함
+        let result_value = result.unwrap();
+
+        println!("unwrapped value : {:#?}", result_value);
+        //
+        // println!("encrypted result : {:#?}", result_value);
+
+        // let err_type_id = (&*err).type_id();
+        // let struct_type_id = TypeId::of::<Box<dyn LibError>>();
+        //
+        // assert_eq!(err_type_id, struct_type_id, "반환 에러 유형 불일치");
+
+        // println!("Returned type id1 : {:#?}", err.type_id());
+        // println!("Returned type id2 : {}", (&*err).type_id())
+        // println!("Struct type id   : {:#?}", TypeId::of::<InvalidArgumentError>());
+        // println!("Error message : {}", err.get_message());
     }
 
     // #[test]
