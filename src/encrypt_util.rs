@@ -104,6 +104,8 @@ pub enum AES_TYPE {
 /// * `target` - Hash 대상 문자열
 /// * `salt` - Salt
 ///
+/// # Examples
+///
 /// ```rust
 /// use cliff3_rust_util::encrypt_util::{make_sha_hash, SHA_TYPE};
 /// let mut result = make_sha_hash(SHA_TYPE::SHA_256, Some("test"), Some("salt"));
@@ -163,6 +165,21 @@ pub fn make_sha_hash(
 
 pub struct AESResult {}
 
+/// [`AES_TYPE`]을 이용한 `AES 128/256` 암호화
+///
+/// # Arguments
+///
+/// * enc_type - [`AES_TYPE`]
+/// * target - 암호화 대상 문자열
+/// * secret - Secret key
+/// * salt - salt (8 bytes)
+/// * repeat_count - 반복 횟수
+///
+/// # Errors
+///
+/// * [`MissingArgumentError`] - 암호화 대상 문자열 미지정 혹은 빈문자열일 경우
+/// * [`InvalidArgumentError`] - `salt`의 길이가 `8 bytes`가 아닐 경우
+/// * [`CryptoError`] - [`openssl::pkcs5::KeyIvPair`] 생성 실패
 pub fn make_aes_encrypt(
     enc_type: AES_TYPE,
     target: Option<&str>,
@@ -281,48 +298,28 @@ mod tests {
         );
 
         assert!(result.is_err());
-        // assert_eq!(
-        //     result.err().unwrap().type_id(),
-        //     TypeId::of::<InvalidArgumentError>(),
-        //     ""
-        // );
+
         let err = result.err().unwrap();
         let err_name = err.get_type_name_from_instance();
 
-        println!("err_name : {}", err_name);
-
         assert_eq!(err_name, std::any::type_name::<InvalidArgumentError>());
+        println!("err_name : {}", err_name);
 
         let result = make_aes_encrypt(
             AES_TYPE::AES_128,
             Some(plain_text),
             "abcdefgh".as_bytes(),
-            "saltsalt".as_bytes(),
+            "saltsalt".as_bytes(), // 8 bytes
             10,
         );
 
         assert!(!result.is_err());
 
-        println!("에러 아님");
-
-        // unwrap()을 호출하면 에러 발생
-        // LibError 정의시 Debug mixin 필요
-        // 만일 LibError 정의시 Debug mixin을 하지 않을 경우 unwrap_or_default() 호출해야 함
+        // LibError + Debug mixin 하지 않았을 경우 unwrap()을 호출하면 에러 발생
+        // 만일 LibError + Debug mixin을 하지 않을 경우 unwrap_or_default() 호출해야 함
         let result_value = result.unwrap();
 
         println!("unwrapped value : {:#?}", result_value);
-        //
-        // println!("encrypted result : {:#?}", result_value);
-
-        // let err_type_id = (&*err).type_id();
-        // let struct_type_id = TypeId::of::<Box<dyn LibError>>();
-        //
-        // assert_eq!(err_type_id, struct_type_id, "반환 에러 유형 불일치");
-
-        // println!("Returned type id1 : {:#?}", err.type_id());
-        // println!("Returned type id2 : {}", (&*err).type_id())
-        // println!("Struct type id   : {:#?}", TypeId::of::<InvalidArgumentError>());
-        // println!("Error message : {}", err.get_message());
     }
 
     // #[test]
