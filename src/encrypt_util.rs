@@ -213,7 +213,7 @@ impl Display for AESResult {
 /// * [`MissingArgumentError`] - 암호화 대상 문자열 미지정 혹은 빈문자열일 경우
 /// * [`InvalidArgumentError`] - `salt`의 길이가 `8 bytes`가 아닐 경우
 /// * [`CryptoError`] - [`openssl::pkcs5::KeyIvPair`] 생성 실패
-pub fn make_aes_encrypt(
+pub fn aes_encrypt(
     enc_type: AES_TYPE,
     target: Option<&str>,
     secret: &[u8],
@@ -324,7 +324,7 @@ mod tests {
     #[test]
     pub fn aes_encrypt_test() {
         let plain_text = "This 이것 that 저것";
-        let result: Result<AESResult, Box<dyn LibError>> = make_aes_encrypt(
+        let result: Result<AESResult, Box<dyn LibError>> = aes_encrypt(
             AES_TYPE::AES_128,
             Some(plain_text),
             "abc".as_bytes(),
@@ -340,7 +340,7 @@ mod tests {
         assert_eq!(err_name, std::any::type_name::<InvalidArgumentError>());
         println!("err_name : {}", err_name);
 
-        let result = make_aes_encrypt(
+        let result = aes_encrypt(
             AES_TYPE::AES_128,
             Some(plain_text),
             "abcdefgh".as_bytes(),
