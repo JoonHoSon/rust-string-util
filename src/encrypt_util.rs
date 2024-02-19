@@ -217,7 +217,8 @@ impl Display for AESResult {
 
 /// [`AES_TYPE`]을 이용한 `AES 128/256` 암호화
 ///
-/// 정상적으로 처리된 경우 [`AESResult`]를 반환한다.
+/// 정상적으로 처리된 경우 [`AESResult`]를 반환한다. `salt`는 ** 8 bytes**여야 한다
+/// ([`openssl::pkcs5::bytes_to_key`] 및 [Git hub comment](https://github.com/openssl/openssl/issues/19026#issuecomment-1251538241) 참고).
 ///
 /// # Arguments
 ///
