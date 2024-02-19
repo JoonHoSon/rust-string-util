@@ -163,9 +163,42 @@ pub fn make_sha_hash(
     }
 }
 
-pub struct AESResult {}
+/// AES 암호화 결과
+#[derive(Debug)]
+pub struct AESResult {
+    /// Salt
+    salt: Box<[u8]>,
+
+    /// 암호화 결과
+    result: Box<[u8]>,
+
+    /// 생성된 Initialize vector
+    iv: Box<[u8]>,
+}
+
+impl AESResult {
+    fn new(salt: &[u8], result: &[u8], iv: &[u8]) -> Self {
+        AESResult {
+            salt: Box::from(salt),
+            result: Box::from(result),
+            iv: Box::from(iv),
+        }
+    }
+}
+
+impl Display for AESResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "salt : {:#?}\n, result : {:#?}\n, iv : {:#?}",
+            self.salt, self.result, self.iv
+        )
+    }
+}
 
 /// [`AES_TYPE`]을 이용한 `AES 128/256` 암호화
+///
+/// 정상적으로 처리된 경우 [`AESResult`]를 반환한다.
 ///
 /// # Arguments
 ///
@@ -186,7 +219,7 @@ pub fn make_aes_encrypt(
     secret: &[u8],
     salt: &[u8],
     repeat_count: usize,
-) -> Result<Box<[u8]>, Box<dyn LibError>> {
+) -> Result<AESResult, Box<dyn LibError>> {
     match target {
         None => Err(Box::from(MissingArgumentError::from(
             "암호화 대상 문자열이 지정되지 않았습니다.",
@@ -237,7 +270,8 @@ pub fn make_aes_encrypt(
                 encrypt(cipher, key.as_slice(), Some(iv.as_slice()), v.as_bytes());
 
             match result {
-                Ok(vv) => Ok(Box::from(vv.as_slice())),
+                // Ok(vv) => Ok(Box::from(vv.as_slice())),
+                Ok(vv) => Ok(AESResult::new(salt, vv.as_slice(), iv.as_slice())),
                 Err(e) => {
                     println!("AES encrypt error : {:#?}", e);
 
@@ -251,6 +285,7 @@ pub fn make_aes_encrypt(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use base64::prelude::*;
 
     #[test]
     pub fn make_sha_hash_test() {
@@ -289,7 +324,7 @@ mod tests {
     #[test]
     pub fn aes_encrypt_test() {
         let plain_text = "This 이것 that 저것";
-        let result: Result<Box<[u8]>, Box<dyn LibError>> = make_aes_encrypt(
+        let result: Result<AESResult, Box<dyn LibError>> = make_aes_encrypt(
             AES_TYPE::AES_128,
             Some(plain_text),
             "abc".as_bytes(),
@@ -320,6 +355,12 @@ mod tests {
         let result_value = result.unwrap();
 
         println!("unwrapped value : {:#?}", result_value);
+
+        println!("unwrapped result value : {:#?}", result_value.result);
+
+        let encoded_value = BASE64_STANDARD.encode(result_value.result);
+
+        println!("encoded value : {:#?}", encoded_value);
     }
 
     // #[test]
