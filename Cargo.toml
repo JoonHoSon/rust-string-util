@@ -16,3 +16,6 @@ openssl = "0.10.63"
 rand = "0.8.5"
 regex = "1.10.0"
 sha2 = "0.10.8"
+
+[dev-dependencies]
+base64 = "0.21.7"
