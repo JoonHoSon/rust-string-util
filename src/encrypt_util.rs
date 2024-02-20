@@ -4,9 +4,13 @@
 //! * [sha256](https://crates.io/crates/sha256)
 //! * [rsa](https://crates.io/crates/rsa)
 
+use openssl::bn::BigNum;
 use std::fmt::{Display, Formatter};
 
+use crate::encrypt_util::LoadKeyType::PUBLIC_KEY;
 use openssl::error::ErrorStack;
+use openssl::pkey::Private;
+use openssl::rsa::{Padding, Rsa};
 use openssl::symm::{decrypt, encrypt, Cipher};
 use sha2::{Digest, Sha256 as sha2_256, Sha512 as sha2_512};
 
@@ -423,10 +427,179 @@ pub fn aes_decrypt(
     }
 }
 
+// RSA ---------------------------------------------------------------------------------------------
+#[allow(non_camel_case_types)]
+enum LoadKeyType {
+    /// 공개키
+    PUBLIC_KEY,
+
+    /// 개인키
+    PRIVATE_KEY,
+}
+
+/// RSA 암호화 bit 지정
+#[allow(non_camel_case_types)]
+pub enum RSA_BIT {
+    /// 1024 bit, 암호화 결과는 128 bytes
+    B_1024,
+
+    /// 2048 bit, 암호화 결과는 256 bytes
+    B_2048,
+
+    /// 4096 bit, 암호화 결과는 512 bytes
+    B_4096,
+
+    /// 8192 bit, 암호화 결과는 1024 bytes
+    B_8192,
+}
+
+impl RSA_BIT {
+    /// 해당 값을 `usize` 형태로 반환
+    pub fn bit(&self) -> usize {
+        match self {
+            RSA_BIT::B_1024 => 1024usize,
+            RSA_BIT::B_2048 => 2048usize,
+            RSA_BIT::B_4096 => 4096usize,
+            RSA_BIT::B_8192 => 8192usize,
+        }
+    }
+
+    pub fn bytes(&self) -> u16 {
+        match self {
+            RSA_BIT::B_1024 => 128,
+            RSA_BIT::B_2048 => 256,
+            RSA_BIT::B_4096 => 512,
+            RSA_BIT::B_8192 => 1024,
+        }
+    }
+}
+
+pub struct RSAResult {
+    public_key: Box<[u8]>,
+    public_modulus: Box<[u8]>,
+    public_exponent: Box<[u8]>,
+    private_key: Box<[u8]>,
+    private_modulus: Box<[u8]>,
+    private_exponent: Box<[u8]>,
+}
+
+impl RSAResult {
+    pub fn new(
+        pub_key: &[u8],
+        pub_mod: &[u8],
+        pub_exp: &[u8],
+        prv_key: &[u8],
+        prv_mod: &[u8],
+        prv_exp: &[u8],
+    ) -> Self {
+        RSAResult {
+            public_key: Box::from(pub_key),
+            public_modulus: Box::from(pub_mod),
+            public_exponent: Box::from(pub_exp),
+            private_key: Box::from(prv_key),
+            private_modulus: Box::from(prv_mod),
+            private_exponent: Box::from(prv_exp),
+        }
+    }
+
+    pub fn get_public_key(&self) -> &[u8] {
+        self.public_key.as_ref()
+    }
+
+    pub fn get_public_modulus(&self) -> &[u8] {
+        self.public_modulus.as_ref()
+    }
+
+    pub fn get_public_exponent(&self) -> &[u8] {
+        self.public_exponent.as_ref()
+    }
+
+    pub fn get_private_key(&self) -> &[u8] {
+        self.private_key.as_ref()
+    }
+
+    pub fn get_private_modulus(&self) -> &[u8] {
+        self.private_modulus.as_ref()
+    }
+
+    pub fn get_private_exponent(&self) -> &[u8] {
+        self.private_exponent.as_ref()
+    }
+}
+
+pub fn generate_rsa_keypair(bit_size: RSA_BIT) -> Result<Rsa<Private>, CryptoError> {
+    let rsa: Result<Rsa<Private>, ErrorStack> = Rsa::generate(bit_size.bit() as u32);
+
+    if rsa.is_err() {
+        println!("Generate RSA key pair fail : {:#?}", rsa.err());
+
+        return Err(CryptoError::from(
+            "RSA key pair 생성 중 오류가 발생하였습니다.",
+        ));
+    }
+
+    return Ok(rsa.unwrap());
+}
+
+pub fn rsa_encrypt_without_key(
+    target: &[u8],
+    bit_size: RSA_BIT,
+) -> Result<Box<RSAResult>, CryptoError> {
+    let key_pair: Rsa<Private> = generate_rsa_keypair(bit_size)?;
+
+    let result = rsa_encrypt(target, key_pair.public_key_to_pem().unwrap().as_slice());
+
+    if result.is_err() {
+        todo!("구현")
+    }
+
+    let public_key = key_pair.public_key_to_pem();
+    let private_key = key_pair.private_key_to_pem();
+
+    if public_key.is_err() {
+        todo!("구현")
+    }
+
+    let unwrapped_pub_key = public_key.unwrap();
+
+    if private_key.is_err() {
+        todo!("구현")
+    }
+
+    let unwrapped_prv_key = private_key.unwrap();
+
+    let rsa_result = RSAResult::new(
+        unwrapped_pub_key.as_slice(),
+        key_pair.n().to_vec().as_slice(),
+        key_pair.e().to_vec().as_slice(),
+        unwrapped_prv_key.as_slice(),
+        key_pair.n().to_vec().as_slice(),
+        key_pair.d().to_vec().as_slice(),
+    );
+
+    return Ok(Box::from(rsa_result));
+}
+
+fn rsa_encrypt(target: &[u8], pub_key: &[u8]) -> Result<Box<[u8]>, CryptoError> {
+    // let rsa = Rsa::generate(bit_size.bit() as u32).unwrap();
+    let public_key = Rsa::public_key_from_pem(pub_key).unwrap();
+    let rsa = Rsa::from(public_key);
+    let mut buffer = vec![0; rsa.size() as usize];
+    let result = rsa.public_encrypt(target, &mut buffer, Padding::PKCS1);
+
+    if result.is_err() {
+        todo!("구현")
+    }
+
+    return Ok(Box::from(buffer.as_slice()));
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use base64::prelude::*;
+
+    const PLAIN_TEXT: &str = "This 이것, That 저것";
 
     #[test]
     pub fn make_sha_hash_test() {
@@ -464,11 +637,10 @@ mod tests {
 
     #[test]
     pub fn aes_encrypt_test() {
-        let plain_text = "This 이것 that 저것";
         let repeat_count = 10usize;
         let result: Result<AESResult, Box<dyn LibError>> = aes_encrypt(
             AES_TYPE::AES_128,
-            Some(plain_text),
+            Some(PLAIN_TEXT),
             "abc".as_bytes(),
             "salt".as_bytes(),
             10,
@@ -484,7 +656,7 @@ mod tests {
 
         let encrypt_result = aes_encrypt(
             AES_TYPE::AES_128,
-            Some(plain_text),
+            Some(PLAIN_TEXT),
             "abcdefgh".as_bytes(),
             "saltsalt".as_bytes(), // 8 bytes
             repeat_count,
@@ -518,7 +690,7 @@ mod tests {
         let decrypted_value = decrypted_raw_value.as_ref();
 
         assert_eq!(
-            plain_text,
+            PLAIN_TEXT,
             String::from_utf8_lossy(decrypted_value),
             "복호화 값 불일치"
         );
@@ -529,6 +701,51 @@ mod tests {
         );
     }
 
+    #[test]
+    pub fn rsa_encrypt_test() {
+        let key_pair = generate_rsa_keypair(RSA_BIT::B_4096);
+        let result = rsa_encrypt(
+            PLAIN_TEXT.as_bytes(),
+            key_pair.unwrap().public_key_to_pem().unwrap().as_slice(),
+        );
+
+        assert!(!result.is_err(), "RSA 2048 암호화 실패");
+
+        let result_raw = result.unwrap();
+
+        assert_eq!(
+            result_raw.len(),
+            RSA_BIT::B_4096.bytes() as usize,
+            "암호화 결과 길이 불일치"
+        );
+
+        println!(
+            "rsa result(4096) : {:?}\nlength : {}",
+            result_raw,
+            result_raw.len()
+        );
+
+        let key_pair = generate_rsa_keypair(RSA_BIT::B_8192);
+        let result = rsa_encrypt(
+            PLAIN_TEXT.as_bytes(),
+            key_pair.unwrap().public_key_to_pem().unwrap().as_slice(),
+        );
+
+        assert!(!result.is_err(), "RSA 8192 암호화 실패");
+
+        let result_raw = result.unwrap();
+
+        assert_eq!(
+            result_raw.len(),
+            RSA_BIT::B_8192.bytes() as usize,
+            "암호화 결과 길이 불일치"
+        );
+        println!(
+            "rsa result(8192) : {:?}\nlength : {}",
+            result_raw,
+            result_raw.len()
+        );
+    }
     // #[test]
     // pub fn aes_key_length_match_test() {
     //     let key = Key::<Aes256Gcm>::from_slice(b"abcdefghijklmnopqrstuvwxyz123456");
