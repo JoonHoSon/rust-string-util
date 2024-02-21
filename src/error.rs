@@ -1,7 +1,6 @@
 //! 라이브러리 공용 오류 정의 module
 
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::Deref;
 
 /// 라이브러리에서 사용하는 오류에 대한 공통 정의 trait
 ///

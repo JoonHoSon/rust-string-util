@@ -6,8 +6,8 @@ use crate::error::MissingArgumentError;
 use lazy_static::lazy_static;
 use regex::Regex;
 
-/// 마스킹 처리용 문자
-const APPLY_MASK: &str = "*";
+// 마스킹 처리용 문자
+// const APPLY_MASK: &str = "*";
 
 lazy_static! {
     /// 이메일 정규식
@@ -409,6 +409,7 @@ mod tests {
         let mut email = "joonho.son@me.com";
         let result = validate_email(Some(email));
 
+        assert!(!result.is_err());
         assert!(
             validate_email(Some(email)).unwrap(),
             "정상적인 이메일 유효성 검사 실패"
