@@ -29,3 +29,10 @@ c:\vcpkg> vcpkg.exe integrate install
   * `OPENSSL_LIB_DIR` 경로 추가
   * `OPENSSL_INCLUD_DIR` 경로 추가
   * `PATH`에 `c:\vcpkg\installed\x[86|64]-windows\bin` 추가(**중요**)
+
+## Linux(Ubuntu 기준)
+
+```bash
+$ sudo apt update
+$ sudo apt install build-essential libssl-dev pkg-config
+```
