@@ -85,7 +85,10 @@ impl LibError for CryptoError {
 #[derive(PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum SHA_TYPE {
+    /// SHA-256
     SHA_256,
+
+    /// SHA-512
     SHA_512,
 }
 
@@ -93,7 +96,10 @@ pub enum SHA_TYPE {
 #[derive(PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum AES_TYPE {
+    /// AES-128
     AES_128,
+
+    /// AES-256
     AES_256,
 }
 
@@ -115,7 +121,8 @@ pub enum AES_TYPE {
 ///
 /// ```rust
 /// use cliff3_rust_util::encrypt_util::{make_sha_hash, SHA_TYPE};
-/// let mut result = make_sha_hash(SHA_TYPE::SHA_256, Some("test".as_bytes()), Some("salt"));
+///
+/// let mut result = make_sha_hash(SHA_TYPE::SHA_256, "test".as_bytes(), Some("salt"));
 ///
 /// assert!(!result.is_err());
 ///
@@ -123,7 +130,7 @@ pub enum AES_TYPE {
 ///
 /// assert_eq!(v.join(""), "4edf07edc95b2fdcbcaf2378fd12d8ac212c2aa6e326c59c3e629be3039d6432");
 ///
-/// result = make_sha_hash(SHA_TYPE::SHA_512, Some("test".as_bytes()), Some("salt"));
+/// result = make_sha_hash(SHA_TYPE::SHA_512, "test".as_bytes(), Some("salt"));
 ///
 /// assert!(!result.is_err());
 ///
@@ -133,40 +140,33 @@ pub enum AES_TYPE {
 /// ```
 pub fn make_sha_hash(
     hash_type: SHA_TYPE,
-    target: Option<&[u8]>,
+    target: &[u8],
     salt: Option<&str>,
 ) -> Result<Box<[u8]>, MissingArgumentError> {
-    match target {
-        None => Err(MissingArgumentError::from(
-            "Hash 대상 문자열이 지정되지 않았습니다.",
-        )),
-        Some(v) => {
-            if v.is_empty() {
-                return Err(MissingArgumentError::from("Hash 대상이 빈 문자열 입니다."));
-            }
+    if target.is_empty() {
+        return Err(MissingArgumentError::from("Hash 대상이 빈 문자열 입니다."));
+    }
 
-            return match hash_type {
-                SHA_TYPE::SHA_256 => _hash_::<sha2_256>(v, salt),
-                SHA_TYPE::SHA_512 => _hash_::<sha2_512>(v, salt),
-            };
+    return match hash_type {
+        SHA_TYPE::SHA_256 => _hash_::<sha2_256>(target, salt),
+        SHA_TYPE::SHA_512 => _hash_::<sha2_512>(target, salt),
+    };
 
-            fn _hash_<D: Digest>(
-                target: &[u8],
-                salt: Option<&str>,
-            ) -> Result<Box<[u8]>, MissingArgumentError> {
-                let mut _hash = D::new();
+    fn _hash_<D: Digest>(
+        target: &[u8],
+        salt: Option<&str>,
+    ) -> Result<Box<[u8]>, MissingArgumentError> {
+        let mut _hash = D::new();
 
-                _hash.update(target);
+        _hash.update(target);
 
-                if !salt.is_none() && !salt.unwrap().is_empty() {
-                    _hash.update(salt.unwrap().as_bytes());
-                }
-
-                let result: Vec<u8> = _hash.finalize().to_vec();
-
-                return Ok(Box::from(result.as_slice()));
-            }
+        if !salt.is_none() && !salt.unwrap().is_empty() {
+            _hash.update(salt.unwrap().as_bytes());
         }
+
+        let result: Vec<u8> = _hash.finalize().to_vec();
+
+        return Ok(Box::from(result.as_slice()));
     }
 }
 
@@ -174,13 +174,13 @@ pub fn make_sha_hash(
 #[derive(Debug)]
 pub struct AESResult {
     /// Salt
-    salt: Option<Box<[u8]>>,
+    salt: Option<Vec<u8>>,
 
     /// 암호화 결과
-    result: Box<[u8]>,
+    result: Vec<u8>,
 
     /// 생성된 Initialize vector
-    iv: Box<[u8]>,
+    iv: Vec<u8>,
 }
 
 impl AESResult {
@@ -188,10 +188,10 @@ impl AESResult {
         AESResult {
             salt: match salt {
                 None => None,
-                Some(v) => Some(Box::from(v)),
+                Some(v) => Some(Vec::from(v)),
             },
-            result: Box::from(result),
-            iv: Box::from(iv),
+            result: Vec::from(result),
+            iv: Vec::from(iv),
         }
     }
 
@@ -253,7 +253,7 @@ impl Display for AESResult {
 /// let plain_text = "This 이것 that 저것";
 /// let secret = "this is secret key";
 /// let salt = "12ag3$s!"; // 8 bytes
-/// let result = aes_encrypt(AES_TYPE::AES_128, Some(plain_text.as_bytes()), secret.as_bytes(), Some(salt.as_bytes()), 10);
+/// let result = aes_encrypt(AES_TYPE::AES_128, plain_text.as_bytes(), secret.as_bytes(), Some(salt.as_bytes()), 10);
 ///
 /// assert!(!result.is_err());
 ///
@@ -263,75 +263,78 @@ impl Display for AESResult {
 /// ```
 pub fn aes_encrypt(
     enc_type: AES_TYPE,
-    target: Option<&[u8]>,
+    target: &[u8],
     secret: &[u8],
     salt: Option<&[u8]>,
     repeat_count: usize,
 ) -> Result<AESResult, Box<dyn LibError>> {
-    match target {
-        None => Err(Box::from(MissingArgumentError::from(
-            "암호화 대상 문자열이 지정되지 않았습니다.",
-        ))),
-        Some(v) => {
-            if v.is_empty() {
-                return Err(Box::from(InvalidArgumentError::from(
-                    "암호화 대상이 빈 문자열 입니다",
-                )));
-            }
+    if target.is_empty() {
+        return Err(Box::from(InvalidArgumentError::from(
+            "암호화 대상이 빈 문자열 입니다",
+        )));
+    }
 
-            match salt {
-                None => {}
-                Some(v) => {
-                    if v.len() != 8 {
-                        return Err(Box::from(InvalidArgumentError::from(
-                            "Salt length is invalid(must 8 bytes)",
-                        )));
-                    }
-                }
-            };
+    let validate_salt = validate_salt(salt);
 
-            let cipher = if AES_TYPE::AES_128 == enc_type {
-                Cipher::aes_128_cbc()
-            } else {
-                Cipher::aes_256_cbc()
-            };
-            let key_spec = openssl::pkcs5::bytes_to_key(
-                cipher,
-                openssl::hash::MessageDigest::md5(),
-                secret,
-                salt,
-                repeat_count as i32,
-            );
+    if validate_salt.is_err() {
+        return Err(validate_salt.err().unwrap());
+    }
 
-            if key_spec.is_err() {
-                println!("AES error : {:#?}", key_spec.err());
+    let cipher = if AES_TYPE::AES_128 == enc_type {
+        Cipher::aes_128_cbc()
+    } else {
+        Cipher::aes_256_cbc()
+    };
+    let key_spec = openssl::pkcs5::bytes_to_key(
+        cipher,
+        openssl::hash::MessageDigest::md5(),
+        secret,
+        salt,
+        repeat_count as i32,
+    );
 
-                return Err(Box::from(CryptoError::from(
-                    "AES 암호화 처리 중 오류가 발생하였습니다.",
-                )));
-            }
+    if key_spec.is_err() {
+        println!("AES error : {:#?}", key_spec.err());
 
-            let unwrapped_spec = key_spec.unwrap();
-            let key = unwrapped_spec.key;
-            let iv = unwrapped_spec.iv.unwrap();
+        return Err(Box::from(CryptoError::from(
+            "AES 암호화 처리 중 오류가 발생하였습니다.",
+        )));
+    }
 
-            // let mut iv: [u8; 16] = [0u8; 16];
-            //
-            // rand::thread_rng().fill_bytes(&mut iv);
+    let unwrapped_spec = key_spec.unwrap();
+    let key = unwrapped_spec.key;
+    let iv = unwrapped_spec.iv.unwrap();
 
-            let result: Result<Vec<u8>, ErrorStack> =
-                encrypt(cipher, key.as_slice(), Some(iv.as_slice()), v);
+    // let mut iv: [u8; 16] = [0u8; 16];
+    //
+    // rand::thread_rng().fill_bytes(&mut iv);
 
-            match result {
-                Ok(vv) => Ok(AESResult::new(salt, vv.as_slice(), iv.as_slice())),
-                Err(e) => {
-                    println!("AES encrypt error : {:#?}", e);
+    let result: Result<Vec<u8>, ErrorStack> =
+        encrypt(cipher, key.as_slice(), Some(iv.as_slice()), target);
 
-                    Err(Box::from(InvalidArgumentError::from("암호화 처리 오류")))
-                }
-            }
+    match result {
+        Ok(vv) => Ok(AESResult::new(salt, vv.as_slice(), iv.as_slice())),
+        Err(e) => {
+            println!("AES encrypt error : {:#?}", e);
+
+            Err(Box::from(InvalidArgumentError::from("암호화 처리 오류")))
         }
     }
+}
+
+fn validate_salt(salt: Option<&[u8]>) -> Result<(), Box<dyn LibError>> {
+    return match salt {
+        None => Ok(()),
+        Some(v) => {
+            if v.len() != 8 {
+                return Err(Box::from(InvalidArgumentError::from(
+                    "Salt length is invalid(must 8 bytes)",
+                )));
+            } else {
+                return Ok(());
+            }
+        }
+    };
 }
 
 /// [`AES_TYPE`]을 이용한 암호화(`AES 128/256`) 결과를 복호화 처리
@@ -355,27 +358,29 @@ pub fn aes_encrypt(
 ///
 /// # Examples
 ///
-// TODO(joonho): 2024-02-21 주석 해제
-// ```rust
-// use cliff3_rust_util::encrypt_util::{aes_decrypt, aes_encrypt, AES_TYPE, AESResult};
-// use cliff3_rust_util::encrypt_util::AES_TYPE::AES_128;
-//
-// let plain_text = "abcd한글";
-// let salt = "4s8sdf*!"; // 8 bytes
-// let secret = "LSDIy8&%^&Dfshfbsjf";
-// let result = aes_encrypt(AES_128, Some(plain_text.as_bytes()), secret.as_bytes(), Some(salt.as_bytes()), 10);
-//
-// assert!(!result.is_err());
-// let unwrapped: AESResult = result.unwrap();
-//
-// let decrypted_result = aes_decrypt(AES_TYPE::AES_128, Some(unwrapped.get_result()), secret.as_bytes(), unwrapped.get_iv(), Some(salt.as_bytes()), 10);
-//
-// assert!(!decrypted_result.is_err());
-//
-// let decrypted_raw = decrypted_result.unwrap();
-//
-// assert_eq!(plain_text, String::from_utf8_lossy(decrypted_raw.as_ref()));
-// ```
+/// ```rust
+/// use cliff3_rust_util::encrypt_util::{aes_decrypt, aes_encrypt, AES_TYPE, AESResult};
+/// use cliff3_rust_util::encrypt_util::AES_TYPE::AES_128;
+///
+/// let plain_text = "abcd한글";
+/// let salt = "4s8sdf*!"; // 8 bytes
+/// let secret = "LSDIy8&%^&Dfshfbsjf";
+/// let result = aes_encrypt(AES_128, plain_text.as_bytes(), secret.as_bytes(), Some(salt.as_bytes()), 10);
+///
+/// assert!(!result.is_err());
+///
+/// let unwrapped: AESResult = result.unwrap();
+///
+/// println!("unwrapped: {:#?}", unwrapped);
+///
+/// let decrypted_result = aes_decrypt(AES_128, Some(unwrapped.get_result()), secret.as_bytes(), unwrapped.get_iv(), Some(salt.as_bytes()), 10);
+///
+/// assert!(!decrypted_result.is_err());
+///
+/// let decrypted_raw = decrypted_result.unwrap();
+///
+/// assert_eq!(plain_text, String::from_utf8_lossy(decrypted_raw.as_ref()));
+/// ```
 pub fn aes_decrypt(
     enc_type: AES_TYPE,
     target: Option<&[u8]>,
@@ -395,16 +400,11 @@ pub fn aes_decrypt(
                 )));
             }
 
-            match salt {
-                None => {}
-                Some(_) => {
-                    if v.len() != 8 {
-                        return Err(Box::from(InvalidArgumentError::from(
-                            "Salt length is invalid(must 8 bytes)",
-                        )));
-                    }
-                }
-            };
+            let validate_salt = validate_salt(salt);
+
+            if validate_salt.is_err() {
+                return Err(validate_salt.err().unwrap());
+            }
 
             let cipher = if AES_TYPE::AES_128 == enc_type {
                 Cipher::aes_128_cbc()
@@ -705,7 +705,11 @@ fn rsa_encrypt(target: &[u8], pub_key: &[u8]) -> Result<Box<[u8]>, CryptoError> 
     let result = rsa.public_encrypt(target, &mut buffer, Padding::PKCS1);
 
     if result.is_err() {
-        todo!("구현")
+        println!("RSA error : {:#?}", result.err());
+
+        return Err(CryptoError::from(
+            "RSA 암호화 처리 중 오류가 발생하였습니다.",
+        ));
     }
 
     return Ok(Box::from(buffer.as_slice()));
@@ -724,7 +728,7 @@ mod tests {
     #[test]
     pub fn make_sha_hash_test() {
         let mut result: Result<Box<[u8]>, MissingArgumentError> =
-            make_sha_hash(SHA_TYPE::SHA_256, Some("test".as_bytes()), Some("salt"));
+            make_sha_hash(SHA_TYPE::SHA_256, "test".as_bytes(), Some("salt"));
 
         assert!(!result.is_err());
 
@@ -736,7 +740,7 @@ mod tests {
 
         println!("SHA-256 result : {}", v.join(""));
 
-        result = make_sha_hash(SHA_TYPE::SHA_512, Some("test".as_bytes()), Some("salt"));
+        result = make_sha_hash(SHA_TYPE::SHA_512, "test".as_bytes(), Some("salt"));
 
         assert!(!result.is_err());
 
@@ -757,76 +761,78 @@ mod tests {
 
     #[test]
     pub fn aes_encrypt_test() {
-        // TODO(joonho): 2024-02-21 주석 해제 후 로직 개선 및 테스트 진행
-        // let repeat_count = 10usize;
-        // let result: Result<AESResult, Box<dyn LibError>> = aes_encrypt(
-        //     AES_TYPE::AES_128,
-        //     Some(PLAIN_TEXT.as_bytes()),
-        //     "abc".as_bytes(),
-        //     Some("salt".as_bytes()),
-        //     10,
-        // );
-        //
-        // assert!(result.is_err());
-        //
-        // let err = result.err().unwrap();
-        // let err_name = err.get_type_name_from_instance();
-        //
-        // assert_eq!(err_name, std::any::type_name::<InvalidArgumentError>());
-        // println!("err_name : {}", err_name);
-        //
-        // let encrypt_result = aes_encrypt(
-        //     AES_TYPE::AES_128,
-        //     Some(PLAIN_TEXT.as_bytes()),
-        //     "abcdefgh".as_bytes(),
-        //     Some("saltsalt".as_bytes()), // 8 bytes
-        //     repeat_count,
-        // );
-        //
-        // assert!(!encrypt_result.is_err());
-        //
-        // // LibError + Debug mixin 하지 않았을 경우 unwrap()을 호출하면 에러 발생
-        // // 만일 LibError + Debug mixin을 하지 않을 경우 unwrap_or_default() 호출해야 함
-        // let result_value = encrypt_result.unwrap();
-        //
-        // println!("unwrapped value : {:#?}", result_value);
-        // println!("unwrapped result value : {:#?}", result_value.result);
-        //
-        // let encoded_value = BASE64_STANDARD.encode(result_value.result.clone());
-        //
-        // println!("encoded value : {:#?}", encoded_value);
-        //
-        // let decrypt_result = aes_decrypt(
-        //     AES_TYPE::AES_128,
-        //     Some(result_value.result.as_ref()),
-        //     b"abcdefgh",
-        //     result_value.iv.as_ref(),
-        //     match result_value.salt {
-        //         None => None,
-        //         Some(s) => {
-        //             let ss = s.clone().as_ref();
-        //
-        //             Some(ss)
-        //         }
-        //     },
-        //     repeat_count,
-        // );
-        //
-        // assert!(!decrypt_result.is_err());
-        //
-        // let decrypted_raw_value = decrypt_result.unwrap();
-        // let decrypted_value = decrypted_raw_value.as_ref();
-        //
-        // assert_eq!(
-        //     PLAIN_TEXT,
-        //     String::from_utf8_lossy(decrypted_value),
-        //     "복호화 값 불일치"
-        // );
-        //
-        // println!(
-        //     "decrypted text: {:?}",
-        //     String::from_utf8_lossy(decrypted_value)
-        // );
+        let repeat_count = 10usize;
+        let result: Result<AESResult, Box<dyn LibError>> = aes_encrypt(
+            AES_TYPE::AES_128,
+            PLAIN_TEXT.as_bytes(),
+            "abc".as_bytes(),
+            Some("salt".as_bytes()),
+            10,
+        );
+
+        assert!(result.is_err());
+
+        let err = result.err().unwrap();
+        let err_name = err.get_type_name_from_instance();
+
+        assert_eq!(err_name, std::any::type_name::<InvalidArgumentError>());
+        println!("err_name : {}", err_name);
+
+        let encrypt_result = aes_encrypt(
+            AES_TYPE::AES_128,
+            PLAIN_TEXT.as_bytes(),
+            "abcdefgh".as_bytes(),
+            Some("saltsalt".as_bytes()), // 8 bytes
+            repeat_count,
+        );
+
+        assert!(!encrypt_result.is_err(), "aes 암호화 오류 발생");
+
+        // LibError + Debug mixin 하지 않았을 경우 unwrap()을 호출하면 에러 발생
+        // 만일 LibError + Debug mixin을 하지 않을 경우 unwrap_or_default() 호출해야 함
+        let result_value = encrypt_result.unwrap();
+
+        println!("unwrapped value : {:#?}", result_value);
+        println!("unwrapped result value : {:#?}", result_value.result);
+
+        let encoded_value = BASE64_STANDARD.encode(result_value.result.clone());
+
+        println!("encoded value : {:#?}", encoded_value);
+
+        let mut salt: Option<&[u8]> = None;
+        let unwrapped_salt: Vec<u8>;
+
+        if result_value.salt.is_some() {
+            unwrapped_salt = result_value.salt.unwrap();
+            salt = Some(unwrapped_salt.as_slice());
+        }
+
+        println!("final sal : {:#?}", salt);
+
+        let decrypt_result = aes_decrypt(
+            AES_TYPE::AES_128,
+            Some(result_value.result.as_ref()),
+            b"abcdefgh",
+            result_value.iv.as_ref(),
+            salt,
+            repeat_count,
+        );
+
+        assert!(!decrypt_result.is_err(), "aes 복호화 오류 발생");
+
+        let decrypted_raw_value = decrypt_result.unwrap();
+        let decrypted_value = decrypted_raw_value.as_ref();
+
+        assert_eq!(
+            PLAIN_TEXT,
+            String::from_utf8_lossy(decrypted_value),
+            "복호화 값 불일치"
+        );
+
+        println!(
+            "decrypted text: {:?}",
+            String::from_utf8_lossy(decrypted_value)
+        );
     }
 
     #[test]
