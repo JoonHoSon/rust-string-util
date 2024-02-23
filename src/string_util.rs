@@ -2,17 +2,12 @@
 //!
 //! 한글 초/중/종성 분리 관련 소스 출처는 [가사시니](https://gs.saro.me/lab?q=%ED%95%9C%EA%B8%80&topicId=319)님 블로그 입니다.
 
-#![allow(unused_mut, unused_variables, unused_imports, dead_code)]
-
 use crate::error::MissingArgumentError;
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::io;
-use std::io::ErrorKind;
-use std::ops::Add;
 
-/// 마스킹 처리용 문자
-const APPLY_MASK: &str = "*";
+// 마스킹 처리용 문자
+// const APPLY_MASK: &str = "*";
 
 lazy_static! {
     /// 이메일 정규식
@@ -188,7 +183,7 @@ lazy_static! {
 pub fn validate_email(target: Option<&str>) -> Result<bool, MissingArgumentError> {
     // TODO(joonho): 2023-10-03 한글 도메인 및 ID 포함
     match target {
-        None => Err(MissingArgumentError),
+        None => Err(MissingArgumentError::default()),
         Some(v) => Ok(EMAIL_REGEX.is_match(v)),
     }
 }
@@ -207,12 +202,12 @@ pub fn validate_email(target: Option<&str>) -> Result<bool, MissingArgumentError
 /// ```
 pub fn extract_initial_consonant(target: Option<&str>) -> Result<String, MissingArgumentError> {
     match target {
-        None => Err(MissingArgumentError),
+        None => Err(MissingArgumentError::default()),
         Some(v) => {
             let result = {
                 let mut temp = String::with_capacity(v.chars().count()); // 글자수 만큼 미리 생성
 
-                for (idx, t) in v.chars().enumerate() {
+                for (_, t) in v.chars().enumerate() {
                     if t >= '가' && t <= '힣' {
                         temp += KO_CONSONANTS[(((t as u32) - ('가' as u32)) / 588) as usize]
                             .to_string()
@@ -256,14 +251,14 @@ pub fn separate_simple_consonant_vowel(
     target: Option<&str>,
 ) -> Result<String, MissingArgumentError> {
     match target {
-        None => Err(MissingArgumentError),
+        None => Err(MissingArgumentError::default()),
         Some(v) => {
             let result = {
                 let mut temp = String::with_capacity(v.chars().count() * 3); // 초/중/종성 3개로 분리
                 let mut consonant: u32;
                 let start = '가' as u32;
 
-                for (idx, t) in v.chars().enumerate() {
+                for (_, t) in v.chars().enumerate() {
                     if t >= '가' && t <= '힣' {
                         consonant = (t as u32) - start;
 
@@ -317,7 +312,7 @@ pub fn separate_consonant_vowel_completely(
     target: Option<&str>,
 ) -> Result<String, MissingArgumentError> {
     match target {
-        None => Err(MissingArgumentError),
+        None => Err(MissingArgumentError::default()),
         Some(v) => {
             // 한 글자당 최대 6자가 될 수 있음
             // 꽊 -> ㄱㄱㅗㅏㄱㄱ
@@ -326,7 +321,7 @@ pub fn separate_consonant_vowel_completely(
                 let mut consonant: u32;
                 let start = '가' as u32;
 
-                for (idx, t) in v.chars().enumerate() {
+                for (_, t) in v.chars().enumerate() {
                     if t >= '가' && t <= '힣' {
                         consonant = (t as u32) - start;
 
@@ -379,6 +374,32 @@ pub fn separate_consonant_vowel_completely(
     }
 }
 
+/// 대상 슬라이스를 16진수 형태 문자열로 반환.
+///
+/// # Arguments
+///
+/// * `target` - 원본 데이터
+/// * `to_uppercase` - 대/소문자 출력 형태
+pub fn to_hex(target: Option<&[u8]>, to_uppercase: bool) -> Option<String> {
+    if target.is_none() {
+        return None;
+    }
+
+    let v: Vec<String> = target
+        .unwrap()
+        .iter()
+        .map(|b| {
+            if to_uppercase {
+                format!("{:02X}", b)
+            } else {
+                format!("{:02x}", b)
+            }
+        })
+        .collect();
+
+    return Some(v.join(""));
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -386,8 +407,9 @@ mod tests {
     #[test]
     pub fn validate_email_test() {
         let mut email = "joonho.son@me.com";
-        let mut result = validate_email(Some(email));
+        let result = validate_email(Some(email));
 
+        assert!(!result.is_err());
         assert!(
             validate_email(Some(email)).unwrap(),
             "정상적인 이메일 유효성 검사 실패"
@@ -410,7 +432,7 @@ mod tests {
         // 반환되는 에러가 ValidateError인제 확인
         assert_eq!(
             validate_email(None).unwrap_err(),
-            MissingArgumentError,
+            MissingArgumentError::default(),
             "에러 불일치"
         );
     }
@@ -530,7 +552,7 @@ mod tests {
         target = "많이 주세요.";
         result = separate_simple_consonant_vowel(Some(target)).unwrap();
 
-        print!("separate result : {}", result);
+        println!("separate result : {}", result);
 
         assert_eq!(
             "ㅁㅏㄶㅇㅣ ㅈㅜㅅㅔㅇㅛ.",
