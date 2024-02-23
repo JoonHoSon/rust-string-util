@@ -665,6 +665,32 @@ pub fn rsa_encrypt_without_key(
 /// * prv_key - 암호화시 생성된 개인키
 ///
 /// # Errors
+///
+/// * [`CryptoError`] - 암호화 처리 중 오류 발생
+///
+/// # Examples
+///
+/// ```rust
+/// use cliff3_rust_util::encrypt_util::{RSA_BIT, rsa_decrypt, rsa_encrypt_without_key, RSAResult};
+///
+/// let plaint_text = "This 이것 that 저것";
+/// let result = rsa_encrypt_without_key(plaint_text.as_bytes(), RSA_BIT::B_2048);
+///
+/// assert!(!result.is_err());
+///
+/// let unwrapped_encrypt_result = result.unwrap();
+///
+/// assert_eq!(unwrapped_encrypt_result.get_result().len(), RSA_BIT::B_2048.bytes() as usize, "암호화 결과 불일치");
+///
+/// let decrypt_result = rsa_decrypt(unwrapped_encrypt_result.get_result(), unwrapped_encrypt_result.get_private_key());
+///
+/// assert!(!decrypt_result.is_err());
+///
+/// let unwrapped_decrypt_result = decrypt_result.unwrap();
+/// let decrypted_text = String::from_utf8(unwrapped_decrypt_result.to_vec()).unwrap();
+///
+/// assert_eq!(decrypted_text, plaint_text, "복호화 실패");
+/// ```
 pub fn rsa_decrypt(target: &[u8], prv_key: &[u8]) -> Result<Vec<u8>, CryptoError> {
     let private_key = Rsa::private_key_from_pem(prv_key);
 
@@ -796,7 +822,7 @@ mod tests {
 
         let encoded_value = BASE64_STANDARD.encode(result_value.result.clone());
 
-        println!("encoded value : {:#?}", encoded_value);
+        println!("aes base64 encoded value : {:#?}", encoded_value);
 
         let mut salt: Option<&[u8]> = None;
         let unwrapped_salt: Vec<u8>;
@@ -858,6 +884,10 @@ mod tests {
             result_raw.len()
         );
 
+        let encoded_value = BASE64_STANDARD.encode(result_raw);
+
+        println!("rsa base 64 encoded value : {:?}", encoded_value);
+
         let key_pair = generate_rsa_keypair(RSA_BIT::B_8192);
         let result1 = rsa_encrypt(
             PLAIN_TEXT.as_bytes(),
@@ -912,7 +942,7 @@ mod tests {
 
         let decrypt2 = rsa_decrypt(result2_raw.get_result(), result2_raw.get_private_key());
 
-        assert!(decrypt2.is_err().not());
+        assert!(!decrypt2.is_err());
 
         let decrypt2_raw = decrypt2.unwrap();
         let decrypt2_result = String::from_utf8(decrypt2_raw.to_vec()).unwrap();
