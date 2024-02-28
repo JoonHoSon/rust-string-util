@@ -1,7 +1,7 @@
 name: Cargo test
 on:
     push:
-        branches: [ main, develop, 'feature/**' ]
+        branches: [ main, develop, ]
         paths: [ "**.rs", "**.toml" ]
 
 env:
