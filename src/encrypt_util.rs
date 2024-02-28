@@ -951,14 +951,4 @@ mod tests {
 
         println!("원문: {:?}\n복호화 결과: {:?}", PLAIN_TEXT, decrypt2_result);
     }
-    // #[test]
-    // pub fn aes_key_length_match_test() {
-    //     let key = Key::<Aes256Gcm>::from_slice(b"abcdefghijklmnopqrstuvwxyz123456");
-    //     let cipher = Some(Aes256Gcm::new(&key));
-    //
-    //     assert!(!cipher.is_none());
-    //     assert_eq!(key.len(), 32);
-    //
-    //     cipher.unwrap().encrypt()
-    // }
 }
