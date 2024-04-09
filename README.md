@@ -34,5 +34,5 @@ c:\vcpkg> vcpkg.exe integrate install
 
 ```bash
 $ sudo apt update
-$ sudo apt install build-essential pkg-config
+$ sudo apt install build-essential pkg-config libssl-dev
 ```
