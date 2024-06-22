@@ -120,7 +120,7 @@ pub enum AES_TYPE {
 /// # Examples
 ///
 /// ```rust
-/// use cliff3_rust_util::encrypt_util::{make_sha_hash, SHA_TYPE};
+/// use cliff3_util::encrypt_util::{make_sha_hash, SHA_TYPE};
 ///
 /// let mut result = make_sha_hash(SHA_TYPE::SHA_256, "test".as_bytes(), Some("salt"));
 ///
@@ -268,7 +268,7 @@ fn validate_salt(salt: Option<&[u8]>) -> Result<(), InvalidArgumentError> {
 /// # Examples
 ///
 /// ```rust
-/// use cliff3_rust_util::encrypt_util::{aes_encrypt, AES_TYPE, AESResult};
+/// use cliff3_util::encrypt_util::{aes_encrypt, AES_TYPE, AESResult};
 ///
 /// let plain_text = "This 이것 that 저것";
 /// let secret = "this is secret key";
@@ -364,8 +364,8 @@ pub fn aes_encrypt(
 /// # Examples
 ///
 /// ```rust
-/// use cliff3_rust_util::encrypt_util::{aes_decrypt, aes_encrypt, AES_TYPE, AESResult};
-/// use cliff3_rust_util::encrypt_util::AES_TYPE::AES_128;
+/// use cliff3_util::encrypt_util::{aes_decrypt, aes_encrypt, AES_TYPE, AESResult};
+/// use cliff3_util::encrypt_util::AES_TYPE::AES_128;
 ///
 /// let plain_text = "abcd한글";
 /// let salt = "4s8sdf*!"; // 8 bytes
@@ -602,7 +602,7 @@ pub fn generate_rsa_keypair(bit_size: RSA_BIT) -> Result<Rsa<Private>, CryptoErr
 /// # Examples
 ///
 /// ```rust
-/// use cliff3_rust_util::encrypt_util::{RSA_BIT, rsa_encrypt_without_key};
+/// use cliff3_util::encrypt_util::{RSA_BIT, rsa_encrypt_without_key};
 ///
 /// const PLAIN_TEXT: &str = "이것은 테스트 입니다.";
 /// let result =rsa_encrypt_without_key(PLAIN_TEXT.as_bytes(), RSA_BIT::B_4096);
@@ -671,7 +671,7 @@ pub fn rsa_encrypt_without_key(
 /// # Examples
 ///
 /// ```rust
-/// use cliff3_rust_util::encrypt_util::{RSA_BIT, rsa_decrypt, rsa_encrypt_without_key, RSAResult};
+/// use cliff3_util::encrypt_util::{RSA_BIT, rsa_decrypt, rsa_encrypt_without_key, RSAResult};
 ///
 /// let plaint_text = "This 이것 that 저것";
 /// let result = rsa_encrypt_without_key(plaint_text.as_bytes(), RSA_BIT::B_2048);
@@ -742,8 +742,6 @@ fn rsa_encrypt(target: &[u8], pub_key: &[u8]) -> Result<Box<[u8]>, CryptoError> 
 
 #[cfg(test)]
 mod tests {
-    use std::ops::Not;
-
     use base64::prelude::*;
 
     use super::*;

@@ -1,6 +1,6 @@
 //! 문자열 관련 유틸리티 함수 모음
 //!
-//! 한글 초/중/종성 분리 관련 소스 출처는 [가사시니](https://gs.saro.me/lab?q=%ED%95%9C%EA%B8%80&topicId=319)님 블로그 입니다.
+//! 한글 초/중/종성 분리 관련 소스 출처는 [가사시니](https://gs.saro.me/2018/10/01/백업-가리사니-자바-한글분해-Stream-API,-StringBuilder,-raw-속도-테스트.html)님 블로그 입니다.
 
 use crate::error::MissingArgumentError;
 use lazy_static::lazy_static;
@@ -193,7 +193,7 @@ pub fn validate_email(target: Option<&str>) -> Result<bool, MissingArgumentError
 /// 한글이 아닌 다른 문자(한자, 알파벳, 이모티콘, 특수 문자 등)는 그대로 반환한다.
 ///
 /// ```
-/// use cliff3_rust_util::string_util::extract_initial_consonant;
+/// use cliff3_util::string_util::extract_initial_consonant;
 ///
 /// let target = "이건 이모티콘(❤😑😊😂)을 포함합니다.";
 /// let result = extract_initial_consonant(Some(target)).unwrap();
@@ -235,7 +235,7 @@ pub fn extract_initial_consonant(target: Option<&str>) -> Result<String, Missing
 /// * 종성이 겹받침이어도 그대로 처리 (`ㄶ` -> `ㄶ`, `ㄺ` -> `ㄺ`)
 ///
 /// ```
-/// use cliff3_rust_util::string_util::separate_simple_consonant_vowel;
+/// use cliff3_util::string_util::separate_simple_consonant_vowel;
 ///
 /// let mut target = "한글과 English가 함께";
 /// let mut result = separate_simple_consonant_vowel(Some(target)).unwrap();
@@ -298,7 +298,7 @@ pub fn separate_simple_consonant_vowel(
 /// * 종성이 겹받침일 경우 분해 (`ㄶ` -> `ㄴㅎ`, `ㄺ` -> `ㄹㄱ`)
 ///
 /// ```
-/// use cliff3_rust_util::string_util::separate_consonant_vowel_completely;
+/// use cliff3_util::string_util::separate_consonant_vowel_completely;
 /// let target = r#""투표율을 40%(percentage) 초중반대는 충분히 되지 않을까 생각한다"며 말문을 뗐다."#;
 /// let result = separate_consonant_vowel_completely(Some(target)).unwrap();
 ///
