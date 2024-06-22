@@ -1,14 +1,9 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+pub mod error;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// string_util.rs 파일에 다음과 같이 설정하여도 됨
+// #![cfg(any(feature = "default", feature = "string"))]
+#[cfg(any(feature = "string", feature = "default"))]
+pub mod string_util;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+#[cfg(any(feature = "encrypt", feature = "default"))]
+pub mod encrypt_util;

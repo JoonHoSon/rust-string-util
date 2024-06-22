@@ -1,0 +1,23 @@
+name: Cargo test
+on:
+    push:
+        branches: [ main, develop, ]
+        paths: [ "**.rs", "**.toml" ]
+
+env:
+    CARGO_TERM_COLOR: always
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+#            Windows일 경우
+#            -   run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+#                if: runner.os == 'Windows'
+#            -   run: vcpkg install openssl:x64-windows-static-md
+#                if: runner.os == 'Windows'
+            -   uses: actions/checkout@v2
+            -   name: Build
+                run: cargo build --verbose
+            -   name: Run tests
+                run: cargo test --verbose
