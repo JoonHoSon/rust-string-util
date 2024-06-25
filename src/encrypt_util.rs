@@ -767,6 +767,8 @@ mod tests {
 
         assert!(!result.is_err());
 
+        let v: Vec<String> = result.unwrap().iter().map(|b| format!("{:02x}", b)).collect();
+
         println!("SHA-512 result : {}", v.join(""));
     }
 
