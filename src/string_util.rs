@@ -440,7 +440,7 @@ pub fn to_hex(target: Option<&[u8]>, to_uppercase: bool) -> Option<String> {
 /// - 생성된 문자열
 pub fn generate_random_string(length: u32) -> Option<String> {
     let mut random = rand::thread_rng();
-    let mut count:u32 = 0;
+    let mut count: u32 = 0;
     let mut result: Vec<&str> = vec![];
     let source_size = RANDOM_SOURCE.len() - 1;
 
@@ -681,7 +681,10 @@ mod tests {
 
         assert_eq!(length, result.len() as u32);
 
-        println!("--------------------------\nrandom string result1: {}--------------------\n", result);
+        println!(
+            "--------------------------\nrandom string result1: {}--------------------\n",
+            result
+        );
 
         let length = 38;
         let result = generate_random_string(length);
@@ -692,6 +695,9 @@ mod tests {
 
         assert_eq!(length, result.len() as u32);
 
-        println!("--------------------------\nrandom string result2: {}--------------------\n", result);
+        println!(
+            "--------------------------\nrandom string result2: {}--------------------\n",
+            result
+        );
     }
 }

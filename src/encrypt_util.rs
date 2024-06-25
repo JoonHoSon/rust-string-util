@@ -109,9 +109,9 @@ pub enum AES_TYPE {
 ///
 /// # Arguments
 ///
-/// * hash_type - [`SHA_TYPE`]
-/// * `target` - Hash 대상
-/// * `salt` - Salt
+/// * `hash_type` [`SHA_TYPE`]
+/// * `target` Hash 대상
+/// * `salt` Salt
 ///
 /// # Errors
 ///
@@ -167,6 +167,44 @@ pub fn make_sha_hash(
         let result: Vec<u8> = _hash.finalize().to_vec();
 
         return Ok(Box::from(result.as_slice()));
+    }
+}
+
+/// 대상 문자열을 `SHA` 알고리즘을 이용하여 hash 처리 후 문자열 형태로 반환
+///
+/// 두 번째 인자 `salt`가 존재할 경우 이를 반영하여 처리함.
+///
+/// # Arguments
+///
+/// - `hash_type` [SHA_TYPE]
+/// - `target` Hash 대상
+/// - `salt` Salt
+///
+/// # Example
+///
+/// ```rust
+/// use cliff3_util::encrypt_util::{make_sha_hash_string, SHA_TYPE};
+///
+/// let result = make_sha_hash_string(SHA_TYPE::SHA_256, "test".as_bytes(), Some("salt"));
+///
+/// assert!(result.is_ok());
+///
+/// assert_eq!("4edf07edc95b2fdcbcaf2378fd12d8ac212c2aa6e326c59c3e629be3039d6432", result.unwrap());
+/// ```
+pub fn make_sha_hash_string(
+    hash_type: SHA_TYPE,
+    target: &[u8],
+    salt: Option<&str>,
+) -> Result<String, MissingArgumentError> {
+    let result = make_sha_hash(hash_type, target, salt);
+
+    match result {
+        Ok(r) => {
+            let v: Vec<String> = r.iter().map(|b| format!("{:02x}", b)).collect();
+
+            Ok(v.join(""))
+        }
+        Err(e) => Err(e),
     }
 }
 
@@ -241,7 +279,7 @@ fn validate_salt(salt: Option<&[u8]>) -> Result<(), InvalidArgumentError> {
                 ))
             } else {
                 Ok(())
-            }
+            };
         }
     };
 }
@@ -767,7 +805,20 @@ mod tests {
 
         assert!(!result.is_err());
 
-        println!("SHA-512 result : {}", v.join(""));
+        let v: Vec<String> = result
+            .unwrap()
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect();
+        let v = v.join("");
+
+        println!("SHA-512 result : {}", v);
+
+        let vv = make_sha_hash_string(SHA_TYPE::SHA_512, "test".as_bytes(), Some("salt"));
+
+        assert!(vv.is_ok(), "make_sha_hash_string error => {:#?}", vv.err());
+
+        assert_eq!(v, vv.unwrap(), "hash string 불일치")
     }
 
     // #[test]
