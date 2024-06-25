@@ -4,6 +4,7 @@
 
 use crate::error::MissingArgumentError;
 use lazy_static::lazy_static;
+use rand::Rng;
 use regex::Regex;
 
 // 마스킹 처리용 문자
@@ -200,6 +201,14 @@ pub fn validate_email(target: Option<&str>) -> Result<bool, MissingArgumentError
 ///
 /// assert_eq!("ㅇㄱ ㅇㅁㅌㅋ(❤😑😊😂)ㅇ ㅍㅎㅎㄴㄷ.", result.as_str());
 /// ```
+///
+/// # Arguments
+///
+/// - `target` 추출 대상 문자열
+///
+/// # Return
+///
+/// - 추출 결과. `Result<String, MissingArgumentError>`
 pub fn extract_initial_consonant(target: Option<&str>) -> Result<String, MissingArgumentError> {
     match target {
         None => Err(MissingArgumentError::default()),
@@ -247,6 +256,14 @@ pub fn extract_initial_consonant(target: Option<&str>) -> Result<String, Missing
 ///
 /// assert_eq!("ㅁㅏㄶㅇㅣ ㅈㅜㅅㅔㅇㅛ.", result.as_str());
 /// ```
+///
+/// # Arguments
+///
+/// - `target` 추출 대상 문자열
+///
+/// # Return
+///
+/// - 추출 결과. `Result<String, MissingArgumentError>`
 pub fn separate_simple_consonant_vowel(
     target: Option<&str>,
 ) -> Result<String, MissingArgumentError> {
@@ -308,6 +325,14 @@ pub fn separate_simple_consonant_vowel(
 ///     "쌍자음, 이중 모음이 있을 경우 분리 실패"
 /// );
 /// ```
+///
+/// # Arguments
+///
+/// - `target` 추출 대상 문자열
+///
+/// # Return
+///
+/// - 추출 결과. `Result<String, MissingArgumentError>`
 pub fn separate_consonant_vowel_completely(
     target: Option<&str>,
 ) -> Result<String, MissingArgumentError> {
@@ -380,6 +405,10 @@ pub fn separate_consonant_vowel_completely(
 ///
 /// * `target` - 원본 데이터
 /// * `to_uppercase` - 대/소문자 출력 형태
+///
+/// # Return
+///
+/// - 변환 결과. `Option<Sting>`
 pub fn to_hex(target: Option<&[u8]>, to_uppercase: bool) -> Option<String> {
     if target.is_none() {
         return None;
@@ -400,12 +429,37 @@ pub fn to_hex(target: Option<&[u8]>, to_uppercase: bool) -> Option<String> {
     return Some(v.join(""));
 }
 
+/// 지정된 길이만큼의 무작위 문자열을 생성
+///
+/// # Arguments
+///
+/// - `length` 생성하고자 하는 문자열의 길이
+///
+/// # Return
+///
+/// - 생성된 문자열
+pub fn generate_random_string(length: u32) -> Option<String> {
+    let mut random = rand::thread_rng();
+    let mut count: u32 = 0;
+    let mut result: Vec<&str> = vec![];
+    let source_size = RANDOM_SOURCE.len() - 1;
+
+    while count < length {
+        let index = random.gen_range(0..=source_size);
+        result.push(RANDOM_SOURCE.get(index).unwrap());
+
+        count += 1;
+    }
+
+    Some(result.join(""))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    pub fn validate_email_test() {
+    fn validate_email_test() {
         let mut email = "joonho.son@me.com";
         let result = validate_email(Some(email));
 
@@ -439,12 +493,12 @@ mod tests {
 
     #[test]
     #[should_panic]
-    pub fn invalid_email_should_panic_test() {
+    fn invalid_email_should_panic_test() {
         validate_email(None).unwrap();
     }
 
     #[test]
-    pub fn korean_domain_fail_test() {
+    fn korean_domain_fail_test() {
         let mut email = "한글ID@test.com";
 
         assert!(
@@ -468,7 +522,7 @@ mod tests {
     }
 
     #[test]
-    pub fn extract_initial_consonant_test() {
+    fn extract_initial_consonant_test() {
         let mut target = "한글만 있습니다.";
         let mut result = extract_initial_consonant(Some(target)).unwrap();
 
@@ -515,7 +569,7 @@ mod tests {
     }
 
     #[test]
-    pub fn separate_consonant_vowel_test() {
+    fn separate_consonant_vowel_test() {
         let mut target = "한글만";
         let mut result = separate_simple_consonant_vowel(Some(target)).unwrap();
 
@@ -569,7 +623,7 @@ mod tests {
     }
 
     #[test]
-    pub fn separate_consonant_vowel_completely_test() {
+    fn separate_consonant_vowel_completely_test() {
         let mut target = "한글만";
         let mut result = separate_consonant_vowel_completely(Some(target)).unwrap();
 
@@ -613,6 +667,37 @@ mod tests {
             r#""ㅌㅜㅍㅛㅇㅠㄹㅇㅡㄹ 40%(percentage) ㅊㅗㅈㅜㅇㅂㅏㄴㄷㅐㄴㅡㄴ ㅊㅜㅇㅂㅜㄴㅎㅣ ㄷㅗㅣㅈㅣ ㅇㅏㄴㅎㅇㅡㄹㄱㄱㅏ ㅅㅐㅇㄱㅏㄱㅎㅏㄴㄷㅏ"ㅁㅕ ㅁㅏㄹㅁㅜㄴㅇㅡㄹ ㄷㄷㅔㅅㅅㄷㅏ."#,
             result.as_str(),
             "쌍자음, 이중모음, 특수 기호를 포함하는 경우 분리 실패"
+        );
+    }
+
+    #[test]
+    fn random_string_test() {
+        let length = 17;
+        let result = generate_random_string(length);
+
+        assert!(result.is_some());
+
+        let result = result.unwrap();
+
+        assert_eq!(length, result.len() as u32);
+
+        println!(
+            "--------------------------\nrandom string result1: {}--------------------\n",
+            result
+        );
+
+        let length = 38;
+        let result = generate_random_string(length);
+
+        assert!(result.is_some());
+
+        let result = result.unwrap();
+
+        assert_eq!(length, result.len() as u32);
+
+        println!(
+            "--------------------------\nrandom string result2: {}--------------------\n",
+            result
         );
     }
 }

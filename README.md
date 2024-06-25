@@ -1,10 +1,6 @@
-
-* Develop branch<br>
-![Cargo test workflow](https://github.com/JoonHoSon/rust-util/actions/workflows/cargo_test.yml/badge.svg?branch=develop)
-* Main branch<br>
-![Cargo test workflow](https://github.com/JoonHoSon/rust-util/actions/workflows/cargo_test.yml/badge.svg?branch=main)
-* Feature branch
-  * ![Cargo test workflow](https://github.com/JoonHoSon/rust-util/actions/workflows/cargo_test.yml/badge.svg?branch=feature/string-util)
+[![crates.io](https://img.shields.io/crates/v/cliff3-util.svg)](https://crates.io/crates/cliff3-util)
+[![docs](https://docs.rs/cliff3-util/badge.svg)](https://docs.rs/cliff3-util)
+[![Cargo test](https://github.com/JoonHoSon/rust-util/actions/workflows/cargo_test.yml/badge.svg)](https://github.com/JoonHoSon/rust-util/actions)
 
 # openssl 설정
 
