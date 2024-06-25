@@ -7,3 +7,6 @@ pub mod string_util;
 
 #[cfg(any(feature = "encrypt", feature = "default"))]
 pub mod encrypt_util;
+
+#[cfg(any(feature = "io", feature = "default"))]
+pub mod io;
