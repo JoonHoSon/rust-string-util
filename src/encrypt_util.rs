@@ -256,6 +256,31 @@ impl AESResult {
     }
 
     /// `salt` 반환
+    pub fn salt(&self) -> Option<&[u8]> {
+        return match &self.salt {
+            None => None,
+            Some(v) => {
+                return Some(v.as_ref());
+            }
+        };
+    }
+
+    /// 암호화 결과 반환
+    pub fn result(&self) -> &[u8] {
+        self.result.as_ref()
+    }
+
+    /// `iv` 반환
+    pub fn iv(&self) -> &[u8] {
+        self.iv.as_ref()
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // deprecated
+    // ---------------------------------------------------------------------------------------------
+
+    /// `salt` 반환
+    #[deprecated(note = "salt(&self)로 대체. 삭제 예정.")]
     pub fn get_salt(&self) -> Option<&[u8]> {
         return match &self.salt {
             None => None,
@@ -266,11 +291,13 @@ impl AESResult {
     }
 
     /// 암호화 결과 반환
+    #[deprecated(note = "result(&self)로 대체. 삭제 예정.")]
     pub fn get_result(&self) -> &[u8] {
         return self.result.as_ref();
     }
 
     /// `iv` 반환
+    #[deprecated(note = "iv(&self)로 대체. 삭제 예정.")]
     pub fn get_iv(&self) -> &[u8] {
         return self.iv.as_ref();
     }
@@ -356,7 +383,7 @@ pub fn validate_salt(salt: Option<&[u8]>) -> Result<(), InvalidArgumentError> {
 ///
 /// let unwrapped: AESResult = result.unwrap();
 ///
-/// assert!(unwrapped.get_result().len() > 0);
+/// assert!(unwrapped.result().len() > 0);
 /// ```
 pub fn aes_encrypt(
     enc_type: AES_TYPE,
@@ -459,7 +486,7 @@ pub fn aes_encrypt(
 ///
 /// println!("unwrapped: {:#?}", unwrapped);
 ///
-/// let decrypted_result = aes_decrypt(AES_128, Some(unwrapped.get_result()), secret.as_bytes(), unwrapped.get_iv(), Some(salt.as_bytes()), 10);
+/// let decrypted_result = aes_decrypt(AES_128, Some(unwrapped.result()), secret.as_bytes(), unwrapped.iv(), Some(salt.as_bytes()), 10);
 ///
 /// assert!(!decrypted_result.is_err());
 ///
@@ -611,36 +638,81 @@ impl RSAResult {
     }
 
     /// 공개키 반환
+    pub fn public_key(&self) -> &[u8] {
+        self.public_key.as_ref()
+    }
+
+    /// 공개키 계수(modulus) 반환
+    pub fn public_modulus(&self) -> &[u8] {
+        self.public_modulus.as_ref()
+    }
+
+    /// 공개키 지수(exponent) 반환
+    pub fn public_exponent(&self) -> &[u8] {
+        self.public_exponent.as_ref()
+    }
+    /// 개인키 반환
+    pub fn private_key(&self) -> &[u8] {
+        self.private_key.as_ref()
+    }
+
+    /// 개인키 계수(modulus) 반환
+    pub fn private_modulus(&self) -> &[u8] {
+        self.private_modulus.as_ref()
+    }
+
+    /// 개인키 지수(exponent) 반환
+    pub fn private_exponent(&self) -> &[u8] {
+        self.private_exponent.as_ref()
+    }
+
+    /// 암호화 결과 반환
+    pub fn result(&self) -> &[u8] {
+        self.result.as_ref()
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // deprecated
+    // ---------------------------------------------------------------------------------------------
+
+    /// 공개키 반환
+    #[deprecated(note = "public_key(&self)로 대체. 삭제 예정.")]
     pub fn get_public_key(&self) -> &[u8] {
         self.public_key.as_ref()
     }
 
     /// 공개키 계수(modulus) 반환
+    #[deprecated(note = "public_modulus(&self)로 대체. 삭제 예정.")]
     pub fn get_public_modulus(&self) -> &[u8] {
         self.public_modulus.as_ref()
     }
 
     /// 공개키 지수(exponent) 반환
+    #[deprecated(note = "public_exponent(&self)로 대체. 삭제 예정.")]
     pub fn get_public_exponent(&self) -> &[u8] {
         self.public_exponent.as_ref()
     }
 
     /// 개인키 반환
+    #[deprecated(note = "private_key(&self)로 대체. 삭제 예정.")]
     pub fn get_private_key(&self) -> &[u8] {
         self.private_key.as_ref()
     }
 
     /// 개인키 계수(modulus) 반환
+    #[deprecated(note = "private_modulus(&self)로 대체. 삭제 예정.")]
     pub fn get_private_modulus(&self) -> &[u8] {
         self.private_modulus.as_ref()
     }
 
     /// 개인키 지수(exponent) 반환
+    #[deprecated(note = "private_exponent(&self)로 대체. 삭제 예정.")]
     pub fn get_private_exponent(&self) -> &[u8] {
         self.private_exponent.as_ref()
     }
 
     /// 암호화 결과 반환
+    #[deprecated(note = "result(&self)로 대체. 삭제 예정.")]
     pub fn get_result(&self) -> &[u8] {
         self.result.as_ref()
     }
@@ -720,13 +792,13 @@ pub fn generate_rsa_keypair(bit_size: RSA_BIT) -> Result<Rsa<Private>, CryptoErr
 ///
 /// let raw = result.unwrap();
 ///
-/// assert!(raw.get_private_key().len() > 0, "개인키 반환 실패");
-/// assert!(raw.get_private_exponent().len() > 0, "개인키 지수 반환 실패");
-/// assert!(raw.get_private_modulus().len() > 0, "개인키 계수 반환 실패");
-/// assert!(raw.get_public_key().len() > 0, "공개키 반환 실패");
-/// assert!(raw.get_public_exponent().len() > 0, "공개키 지수 반환 실패");
-/// assert!(raw.get_public_modulus().len() > 0, "공개키 계수 반환 실패");
-/// assert_eq!(raw.get_result().len(), RSA_BIT::B_4096.bytes() as usize, "암호화 결과 길이 불일치");
+/// assert!(raw.private_key().len() > 0, "개인키 반환 실패");
+/// assert!(raw.private_exponent().len() > 0, "개인키 지수 반환 실패");
+/// assert!(raw.private_modulus().len() > 0, "개인키 계수 반환 실패");
+/// assert!(raw.public_key().len() > 0, "공개키 반환 실패");
+/// assert!(raw.public_exponent().len() > 0, "공개키 지수 반환 실패");
+/// assert!(raw.public_modulus().len() > 0, "공개키 계수 반환 실패");
+/// assert_eq!(raw.result().len(), RSA_BIT::B_4096.bytes() as usize, "암호화 결과 길이 불일치");
 /// ```
 pub fn rsa_encrypt_without_key(
     target: &[u8],
@@ -793,9 +865,9 @@ pub fn rsa_encrypt_without_key(
 ///
 /// let unwrapped_encrypt_result = result.unwrap();
 ///
-/// assert_eq!(unwrapped_encrypt_result.get_result().len(), RSA_BIT::B_2048.bytes() as usize, "암호화 결과 불일치");
+/// assert_eq!(unwrapped_encrypt_result.result().len(), RSA_BIT::B_2048.bytes() as usize, "암호화 결과 불일치");
 ///
-/// let decrypt_result = rsa_decrypt(unwrapped_encrypt_result.get_result(), unwrapped_encrypt_result.get_private_key());
+/// let decrypt_result = rsa_decrypt(unwrapped_encrypt_result.result(), unwrapped_encrypt_result.private_key());
 ///
 /// assert!(!decrypt_result.is_err());
 ///
@@ -1048,32 +1120,32 @@ mod tests {
 
         let result2_raw = result2.unwrap();
 
-        assert!(result2_raw.get_private_key().len() > 0, "개인키 반환 실패");
+        assert!(result2_raw.private_key().len() > 0, "개인키 반환 실패");
         assert!(
-            result2_raw.get_private_exponent().len() > 0,
+            result2_raw.private_exponent().len() > 0,
             "개인키 지수 반환 실패"
         );
         assert!(
-            result2_raw.get_private_modulus().len() > 0,
+            result2_raw.private_modulus().len() > 0,
             "개인키 계수 반환 실패"
         );
-        assert!(result2_raw.get_public_key().len() > 0, "공개키 반환 실패");
+        assert!(result2_raw.public_key().len() > 0, "공개키 반환 실패");
         assert!(
-            result2_raw.get_public_exponent().len() > 0,
+            result2_raw.public_exponent().len() > 0,
             "공개키 지수 반환 실패"
         );
         assert!(
-            result2_raw.get_public_modulus().len() > 0,
+            result2_raw.public_modulus().len() > 0,
             "공개키 계수 반환 실패"
         );
-        assert!(result2_raw.get_result().len() > 0, "암호화 결과 반환 실패");
+        assert!(result2_raw.result().len() > 0, "암호화 결과 반환 실패");
         assert_eq!(
-            result2_raw.get_result().len(),
+            result2_raw.result().len(),
             RSA_BIT::B_2048.bytes() as usize,
             "암호화 결과 길이 불일치"
         );
 
-        let decrypt2 = rsa_decrypt(result2_raw.get_result(), result2_raw.get_private_key());
+        let decrypt2 = rsa_decrypt(result2_raw.result(), result2_raw.private_key());
 
         assert!(!decrypt2.is_err());
 
