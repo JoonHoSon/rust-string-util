@@ -256,6 +256,7 @@ impl AESResult {
     }
 
     /// `salt` 반환
+    #[inline]
     pub fn salt(&self) -> Option<&[u8]> {
         return match &self.salt {
             None => None,
@@ -266,11 +267,13 @@ impl AESResult {
     }
 
     /// 암호화 결과 반환
+    #[inline]
     pub fn result(&self) -> &[u8] {
         self.result.as_ref()
     }
 
     /// `iv` 반환
+    #[inline]
     pub fn iv(&self) -> &[u8] {
         self.iv.as_ref()
     }
@@ -638,35 +641,42 @@ impl RSAResult {
     }
 
     /// 공개키 반환
+    #[inline]
     pub fn public_key(&self) -> &[u8] {
         self.public_key.as_ref()
     }
 
     /// 공개키 계수(modulus) 반환
+    #[inline]
     pub fn public_modulus(&self) -> &[u8] {
         self.public_modulus.as_ref()
     }
 
     /// 공개키 지수(exponent) 반환
+    #[inline]
     pub fn public_exponent(&self) -> &[u8] {
         self.public_exponent.as_ref()
     }
     /// 개인키 반환
+    #[inline]
     pub fn private_key(&self) -> &[u8] {
         self.private_key.as_ref()
     }
 
     /// 개인키 계수(modulus) 반환
+    #[inline]
     pub fn private_modulus(&self) -> &[u8] {
         self.private_modulus.as_ref()
     }
 
     /// 개인키 지수(exponent) 반환
+    #[inline]
     pub fn private_exponent(&self) -> &[u8] {
         self.private_exponent.as_ref()
     }
 
     /// 암호화 결과 반환
+    #[inline]
     pub fn result(&self) -> &[u8] {
         self.result.as_ref()
     }
