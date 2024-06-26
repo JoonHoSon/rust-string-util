@@ -33,12 +33,24 @@ impl DirectoryDateType {
     ///
     /// # Arguments
     ///
-    /// - `date` [DateTime<Local>]
+    /// - `date` [`DateTime<Local>`]
     /// - `separator` 날짜 정보 사이에 입력될 문자열 (e.g. **-**, **_**)
     ///
     /// # Return
     ///
     /// - 생성된 경로 문자열
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// use cliff3_util::io::DirectoryDateType;
+    /// use chrono::DateTime;
+    /// 
+    /// let now = chrono::Local::now();
+    /// let result = DirectoryDateType::YYYYMMDD.generate_path_string(&now, Some("--"));
+    /// 
+    /// // result => 2024--06--26
+    /// ```
     pub fn generate_path_string(&self, date: &DateTime<Local>, separator: Option<&str>) -> String {
         let mut path: Vec<String> = vec![];
 
@@ -78,23 +90,50 @@ impl DirectoryDateType {
 ///
 /// # Arguments
 ///
-/// - `parent_path` 생성하고자 하는 경로의 부모 directory
-/// - `date_type` [DirectoryDateType]
-/// - `separator` 날짜 정보 사이에 입력될 문자열 (e.g. **-**, **_**)
+/// - `parent_path` - 생성하고자 하는 경로의 부모 directory
+/// - `date_type` - [DirectoryDateType]
+/// - `separator` - 날짜 정보 사이에 입력될 문자열 (e.g. **-**, **_**)
+/// 
+/// # Return
+/// 
+/// - 생성 결과 `Result<Box<Path>, InvalidArgumentError>`
 ///
 /// # Errors
 ///
 /// - [InvalidArgumentError] 부모 경로가 존재하지 않을 경우 혹은 [std::fs::create_dir_all] 실패
-///
-/// # Return
-///
-/// - 생성 결과 `Result<Box<Path>, InvalidArgumentError>`
 ///
 /// # Link
 ///
 /// - [DirectoryDateType]
 /// - [InvalidArgumentError]
 /// - [std::fs::create_dir_all]
+/// 
+/// # Examples
+/// 
+/// ```rust
+/// use std::path::Path;
+/// use chrono::DateTime;
+/// use cliff3_util::io::{generate_path, DirectoryDateType};
+///
+/// let now = chrono::Local::now();
+/// let compare_dir_name = DirectoryDateType::YYYYMMDD.generate_path_string(&now, Some("_"));
+/// let current_path = Path::new(env!("CARGO_MANIFEST_DIR"));
+/// let result = generate_path(current_path, DirectoryDateType::YYYYMMDD, Some("_"));
+/// 
+/// assert!(result.is_ok());
+/// 
+/// let created_dir = result.unwrap();
+/// 
+/// assert!(created_dir.exists());
+/// 
+/// let dir_name = created_dir.file_name().unwrap();
+/// 
+/// assert_eq!(compare_dir_name, dir_name.to_str().unwrap());
+/// 
+/// let deleted_dir = std::fs::remove_dir(created_dir);
+/// 
+/// assert!(deleted_dir.is_ok());
+/// ```
 pub fn generate_path(
     parent_path: &Path,
     date_type: DirectoryDateType,
