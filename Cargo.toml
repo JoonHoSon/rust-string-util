@@ -7,9 +7,11 @@ repository = "https://github.com/JoonHoSon/rust-util"
 keywords = ["AES", "Encryption", "Decryption", "SHA", "RSA"]
 description = "SHA(256/512) hash, AES/RSA 암복화 및 한글 관련 유틸리티 함수 모음 입니다."
 license = "MIT"
+resolver = "2"
 
 [features]
 string = []
+io = []
 encrypt = ["sha2/default", "openssl/default"]
 default = ["string", "encrypt"]
 
@@ -29,6 +31,7 @@ openssl = "0.10.63"
 rand = "0.8.5"
 regex = "1.10.0"
 sha2 = "0.10.8"
+chrono = "0.4.38"
 
 [dev-dependencies]
 base64 = "0.22.1"

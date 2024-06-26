@@ -65,6 +65,14 @@ pub struct InvalidArgumentError {
     message: String,
 }
 
+impl InvalidArgumentError {
+    pub fn new(message: &str) -> Self {
+        Self {
+            message: message.to_owned(),
+        }
+    }
+}
+
 impl Default for InvalidArgumentError {
     fn default() -> Self {
         InvalidArgumentError {

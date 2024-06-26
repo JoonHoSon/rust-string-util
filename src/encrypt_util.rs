@@ -26,12 +26,12 @@ use crate::error::{InvalidArgumentError, LibError, MissingArgumentError};
 //     // AES/CBC/PKCS5Padding
 //     AES_CBC_PKCS5PADDING,
 //
-//     /// [`Transformation::RSA_ECB_PKCS1PADDING`]와 동일
+//     /// [Transformation::RSA_ECB_PKCS1PADDING]와 동일
 //     RSA,
 // }
 //
 // impl Transformation {
-//     /// [`Transformation`] 항목을 문자열 형태로 반환
+//     /// [Transformation] 항목을 문자열 형태로 반환
 //     pub fn get_transformation(&self) -> &'static str {
 //         match self {
 //             Transformation::RSA_ECB_PKCS1PADDING => "RSA/ECB/PKCS1Padding",
@@ -109,13 +109,22 @@ pub enum AES_TYPE {
 ///
 /// # Arguments
 ///
-/// * `hash_type` [`SHA_TYPE`]
-/// * `target` Hash 대상
-/// * `salt` Salt
+/// - `hash_type` - [SHA_TYPE]
+/// - `target` - Hash 대상
+/// - `salt` - Salt
+///
+/// # Return
+///
+/// - 생성 결과 `Result<Box<u8>, MissingArgumentError>`
 ///
 /// # Errors
 ///
-/// * [`MissingArgumentError`] Hash 대상 문자열 미지정
+/// - [MissingArgumentError] - Hash 대상 문자열 미지정
+///
+/// # Link
+///
+/// - [SHA_TYPE]
+/// - [MissingArgumentError]
 ///
 /// # Examples
 ///
@@ -176,9 +185,22 @@ pub fn make_sha_hash(
 ///
 /// # Arguments
 ///
-/// - `hash_type` [SHA_TYPE]
-/// - `target` Hash 대상
-/// - `salt` Salt
+/// - `hash_type` - [SHA_TYPE]
+/// - `target`- Hash 대상
+/// - `salt`- Salt
+///
+/// # Return
+///
+/// - 생성 결과 `Result<Box<u8>, MissingArgumentError>`
+///
+/// # Errors
+///
+/// - [MissingArgumentError] - Hash 대상 문자열 미지정
+///
+/// # Link
+///
+/// - [SHA_TYPE]
+/// - [MissingArgumentError]
 ///
 /// # Example
 ///
@@ -234,6 +256,31 @@ impl AESResult {
     }
 
     /// `salt` 반환
+    pub fn salt(&self) -> Option<&[u8]> {
+        return match &self.salt {
+            None => None,
+            Some(v) => {
+                return Some(v.as_ref());
+            }
+        };
+    }
+
+    /// 암호화 결과 반환
+    pub fn result(&self) -> &[u8] {
+        self.result.as_ref()
+    }
+
+    /// `iv` 반환
+    pub fn iv(&self) -> &[u8] {
+        self.iv.as_ref()
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // deprecated
+    // ---------------------------------------------------------------------------------------------
+
+    /// `salt` 반환
+    #[deprecated(note = "salt(&self)로 대체. 삭제 예정.")]
     pub fn get_salt(&self) -> Option<&[u8]> {
         return match &self.salt {
             None => None,
@@ -244,11 +291,13 @@ impl AESResult {
     }
 
     /// 암호화 결과 반환
+    #[deprecated(note = "result(&self)로 대체. 삭제 예정.")]
     pub fn get_result(&self) -> &[u8] {
         return self.result.as_ref();
     }
 
     /// `iv` 반환
+    #[deprecated(note = "iv(&self)로 대체. 삭제 예정.")]
     pub fn get_iv(&self) -> &[u8] {
         return self.iv.as_ref();
     }
@@ -266,10 +315,18 @@ impl Display for AESResult {
 
 /// 인자로 전달된 `salt` 유효성 검사. 만약 `salt`가 전달 되었을 경우 **8 bytes** 여부를 확인
 ///
-/// # Error
+/// # Arguments
 ///
-/// - [`InvalidArgumentError`] - **8 bytes** 조건 불일치
-fn validate_salt(salt: Option<&[u8]>) -> Result<(), InvalidArgumentError> {
+/// - `salt` - Salt
+///
+/// # Return
+///
+/// - 유효성 검사 결과
+///
+/// # Errors
+///
+/// - [InvalidArgumentError] - **8 bytes** 조건 불일치
+pub fn validate_salt(salt: Option<&[u8]>) -> Result<(), InvalidArgumentError> {
     return match salt {
         None => Ok(()),
         Some(v) => {
@@ -284,24 +341,33 @@ fn validate_salt(salt: Option<&[u8]>) -> Result<(), InvalidArgumentError> {
     };
 }
 
-/// [`AES_TYPE`]을 이용한 `AES 128/256` 암호화
+/// [AES_TYPE]을 이용한 `AES 128/256` 암호화
 ///
-/// 정상적으로 처리된 경우 [`AESResult`]를 반환한다. `salt`는 **8 bytes**여야 한다
-/// ([`openssl::pkcs5::bytes_to_key`] 및 [Git hub comment](https://github.com/openssl/openssl/issues/19026#issuecomment-1251538241) 참고).
+/// 정상적으로 처리된 경우 [AESResult]를 반환한다. `salt`는 **8 bytes**여야 한다
+/// ([openssl::pkcs5::bytes_to_key] 및 [Git hub comment](https://github.com/openssl/openssl/issues/19026#issuecomment-1251538241) 참고).
 ///
 /// # Arguments
 ///
-/// * enc_type - [`AES_TYPE`]
-/// * target - 암호화 대상
-/// * secret - Secret key
-/// * salt - salt (8 bytes) ([`validate_salt`] 참고)
-/// * repeat_count - 반복 횟수
+/// - `enc_type` - [AES_TYPE]
+/// - `target` - 암호화 대상
+/// - `secret` - Secret key
+/// - `salt` - salt (8 bytes) ([validate_salt] 참고)
+/// - `repeat_count` - 반복 횟수
+///
+/// # Return
+///
+/// - 암호화 결과 `Result<AESResult, Box<dyn LibError>>`
 ///
 /// # Errors
 ///
-/// * [`MissingArgumentError`] - 암호화 대상 문자열 미지정
-/// * [`InvalidArgumentError`] - `salt`의 길이가 `8 bytes`가 아닐 경우 혹은 암호화 대상 문자열이 빈 문자열일 경우
-/// * [`CryptoError`] - [`openssl::pkcs5::KeyIvPair`] 생성 실패
+/// - [MissingArgumentError] - 암호화 대상 문자열 미지정
+/// - [InvalidArgumentError] - `salt`의 길이가 `8 bytes`가 아닐 경우 혹은 암호화 대상 문자열이 빈 문자열일 경우
+/// - [CryptoError] - [openssl::pkcs5::KeyIvPair] 생성 실패
+///
+/// # Link
+///
+/// - [AES_TYPE]
+/// - [AESResult]
 ///
 /// # Examples
 ///
@@ -317,7 +383,7 @@ fn validate_salt(salt: Option<&[u8]>) -> Result<(), InvalidArgumentError> {
 ///
 /// let unwrapped: AESResult = result.unwrap();
 ///
-/// assert!(unwrapped.get_result().len() > 0);
+/// assert!(unwrapped.result().len() > 0);
 /// ```
 pub fn aes_encrypt(
     enc_type: AES_TYPE,
@@ -352,7 +418,7 @@ pub fn aes_encrypt(
     );
 
     if key_spec.is_err() {
-        println!("AES error : {:#?}", key_spec.err());
+        eprintln!("AES error : {:#?}", key_spec.err());
 
         return Err(Box::from(CryptoError::from(
             "AES 암호화 처리 중 오류가 발생하였습니다.",
@@ -373,31 +439,35 @@ pub fn aes_encrypt(
     match result {
         Ok(vv) => Ok(AESResult::new(salt, vv.as_slice(), iv.as_slice())),
         Err(e) => {
-            println!("AES encrypt error : {:#?}", e);
+            eprintln!("AES encrypt error : {:#?}", e);
 
             Err(Box::from(InvalidArgumentError::from("암호화 처리 오류")))
         }
     }
 }
 
-/// [`AES_TYPE`]을 이용한 암호화(`AES 128/256`) 결과를 복호화 처리
+/// [AES_TYPE]을 이용한 암호화(`AES 128/256`) 결과를 복호화 처리
 ///
 /// 정상적으로 처리된 경우 `Box<u8>`을 반환한다.
 ///
 /// # Arguments
 ///
-/// * enc_type - [`AES_TYPE`]
-/// * target - [`aes_encrypt`]를 이용한 암호화 결과
-/// * secret - Secret key
-/// * iv - Initialize vector
-/// * salt - [`aes_encrypt`]시 사용한 `salt` ([`validate_salt`] 참고)
-/// * repeat_count - [`aes_encrypt`]시 지정한 반복 횟수
+/// - `enc_type` - [AES_TYPE]
+/// - `target` - [aes_encrypt]를 이용한 암호화 결과
+/// - `secret` - Secret key
+/// - `iv` - Initialize vector
+/// - `salt` - [aes_encrypt]시 사용한 `salt` ([validate_salt] 참고)
+/// - `repeat_count` - [aes_encrypt]시 지정한 반복 횟수
+///
+/// # Return
+///
+/// - 복호화 결과 `Result<Box<u8>, Box<dyn LibError>>`
 ///
 /// # Errors
 ///
-/// * [`MissingArgumentError`] - 복호화 대상 미지정
-/// * [`InvalidArgumentError`] - `salt`의 길이가 `8 bytes`가 아닐 경우 혹은 복호화 대상의 길이가 `0`일 경우
-/// * [`CryptoError`] - [`openssl::pkcs5::KeyIvPair`] 생성 실패
+/// - [MissingArgumentError] - 복호화 대상 미지정
+/// - [InvalidArgumentError] - `salt`의 길이가 `8 bytes`가 아닐 경우 혹은 복호화 대상의 길이가 `0`일 경우
+/// - [CryptoError] - [openssl::pkcs5::KeyIvPair] 생성 실패
 ///
 /// # Examples
 ///
@@ -416,7 +486,7 @@ pub fn aes_encrypt(
 ///
 /// println!("unwrapped: {:#?}", unwrapped);
 ///
-/// let decrypted_result = aes_decrypt(AES_128, Some(unwrapped.get_result()), secret.as_bytes(), unwrapped.get_iv(), Some(salt.as_bytes()), 10);
+/// let decrypted_result = aes_decrypt(AES_128, Some(unwrapped.result()), secret.as_bytes(), unwrapped.iv(), Some(salt.as_bytes()), 10);
 ///
 /// assert!(!decrypted_result.is_err());
 ///
@@ -463,7 +533,7 @@ pub fn aes_decrypt(
             );
 
             if key_spec.is_err() {
-                println!("AES error: {:#?}", key_spec.err());
+                eprintln!("AES error: {:#?}", key_spec.err());
 
                 return Err(Box::from(CryptoError::from(
                     "AES 복호화 처리 중 오류가 발생하였습니다.",
@@ -479,7 +549,7 @@ pub fn aes_decrypt(
                 Ok(vv) => Ok(Box::from(vv.as_slice())),
 
                 Err(e) => {
-                    println!("AES decrypt error: {:#?}", e);
+                    eprintln!("AES decrypt error: {:#?}", e);
 
                     Err(Box::from(InvalidArgumentError::from("복호화 처리 오류")))
                 }
@@ -568,47 +638,110 @@ impl RSAResult {
     }
 
     /// 공개키 반환
+    pub fn public_key(&self) -> &[u8] {
+        self.public_key.as_ref()
+    }
+
+    /// 공개키 계수(modulus) 반환
+    pub fn public_modulus(&self) -> &[u8] {
+        self.public_modulus.as_ref()
+    }
+
+    /// 공개키 지수(exponent) 반환
+    pub fn public_exponent(&self) -> &[u8] {
+        self.public_exponent.as_ref()
+    }
+    /// 개인키 반환
+    pub fn private_key(&self) -> &[u8] {
+        self.private_key.as_ref()
+    }
+
+    /// 개인키 계수(modulus) 반환
+    pub fn private_modulus(&self) -> &[u8] {
+        self.private_modulus.as_ref()
+    }
+
+    /// 개인키 지수(exponent) 반환
+    pub fn private_exponent(&self) -> &[u8] {
+        self.private_exponent.as_ref()
+    }
+
+    /// 암호화 결과 반환
+    pub fn result(&self) -> &[u8] {
+        self.result.as_ref()
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // deprecated
+    // ---------------------------------------------------------------------------------------------
+
+    /// 공개키 반환
+    #[deprecated(note = "public_key(&self)로 대체. 삭제 예정.")]
     pub fn get_public_key(&self) -> &[u8] {
         self.public_key.as_ref()
     }
 
     /// 공개키 계수(modulus) 반환
+    #[deprecated(note = "public_modulus(&self)로 대체. 삭제 예정.")]
     pub fn get_public_modulus(&self) -> &[u8] {
         self.public_modulus.as_ref()
     }
 
     /// 공개키 지수(exponent) 반환
+    #[deprecated(note = "public_exponent(&self)로 대체. 삭제 예정.")]
     pub fn get_public_exponent(&self) -> &[u8] {
         self.public_exponent.as_ref()
     }
 
     /// 개인키 반환
+    #[deprecated(note = "private_key(&self)로 대체. 삭제 예정.")]
     pub fn get_private_key(&self) -> &[u8] {
         self.private_key.as_ref()
     }
 
     /// 개인키 계수(modulus) 반환
+    #[deprecated(note = "private_modulus(&self)로 대체. 삭제 예정.")]
     pub fn get_private_modulus(&self) -> &[u8] {
         self.private_modulus.as_ref()
     }
 
     /// 개인키 지수(exponent) 반환
+    #[deprecated(note = "private_exponent(&self)로 대체. 삭제 예정.")]
     pub fn get_private_exponent(&self) -> &[u8] {
         self.private_exponent.as_ref()
     }
 
     /// 암호화 결과 반환
+    #[deprecated(note = "result(&self)로 대체. 삭제 예정.")]
     pub fn get_result(&self) -> &[u8] {
         self.result.as_ref()
     }
 }
 
-/// 지정된 [`RSA_BIT`] 기준으로 RSA keypair를 생성하여 반환
+/// 지정된 [RSA_BIT] 기준으로 RSA keypair를 생성하여 반환
+///
+/// # Arguments
+///
+/// - `bit_size` - [RSA_BIT]
+///
+/// # Return
+///
+/// - 생성된 keypair 결과 `Result<Rsa<Private>, CryptoError>`
+///
+/// # Errors
+///
+/// - [CryptoError] - Keypair 생성 오류
+///
+/// # Link
+///
+/// - [Rsa]
+/// - [Private]
+/// - [CryptoError]
 pub fn generate_rsa_keypair(bit_size: RSA_BIT) -> Result<Rsa<Private>, CryptoError> {
     let rsa: Result<Rsa<Private>, ErrorStack> = Rsa::generate(bit_size.bit() as u32);
 
     if rsa.is_err() {
-        println!("Generate RSA key pair fail : {:#?}", rsa.err());
+        eprintln!("Generate RSA key pair fail : {:#?}", rsa.err());
 
         return Err(CryptoError::from(
             "RSA key pair 생성 중 오류가 발생하였습니다.",
@@ -618,24 +751,34 @@ pub fn generate_rsa_keypair(bit_size: RSA_BIT) -> Result<Rsa<Private>, CryptoErr
     return Ok(rsa.unwrap());
 }
 
-/// [`RSA_BIT`]를 이용한 RSA 암호화 처리
+/// [RSA_BIT]를 이용한 RSA 암호화 처리
 ///
-/// 자동으로 [`Rsa<Private>`]를 생성하여 암호화 처리를 한 후 [`RSAResult`]에 생성된 키 정보와 암호화
+/// 자동으로 [`Rsa<Private>`]를 생성하여 암호화 처리를 한 후 [RSAResult]에 생성된 키 정보와 암호화
 /// 결과를 포함하여 반환한다.
 ///
 /// # Arguments
 ///
-/// * target - 암호화 대상
-/// * bit_size - [`RSA_BIT`]
+/// - `target` - 암호화 대상
+/// - `bit_size` - [RSA_BIT]
+///
+/// # Return
+///
+/// - RSA 암호화 결과 `Result<Box<RSAResult>, CryptoError>`
 ///
 /// # Errors
 ///
-/// ## [`CryptoError`]
+/// ## [CryptoError]
 ///
-/// * [`generate_rsa_keypair`] 호출에서 발생
-/// * `Rsa<Private>.public_key_to_pem` 호출에서 발생
-/// * `Rsa<Private>.private_key_to_pem` 호출에서 발생
-/// * [`rsa_encrypt`] 호출에서 발생
+/// - [generate_rsa_keypair] 호출에서 발생
+///     - `Rsa<Private>.public_key_to_pem` 호출에서 발생
+///     - `Rsa<Private>.private_key_to_pem` 호출에서 발생
+///     - [rsa_encrypt] 호출에서 발생
+///
+/// # Link
+///
+/// - [RSA_BIT]
+/// - [RSAResult]
+/// - [CryptoError]
 ///
 /// # Examples
 ///
@@ -649,13 +792,13 @@ pub fn generate_rsa_keypair(bit_size: RSA_BIT) -> Result<Rsa<Private>, CryptoErr
 ///
 /// let raw = result.unwrap();
 ///
-/// assert!(raw.get_private_key().len() > 0, "개인키 반환 실패");
-/// assert!(raw.get_private_exponent().len() > 0, "개인키 지수 반환 실패");
-/// assert!(raw.get_private_modulus().len() > 0, "개인키 계수 반환 실패");
-/// assert!(raw.get_public_key().len() > 0, "공개키 반환 실패");
-/// assert!(raw.get_public_exponent().len() > 0, "공개키 지수 반환 실패");
-/// assert!(raw.get_public_modulus().len() > 0, "공개키 계수 반환 실패");
-/// assert_eq!(raw.get_result().len(), RSA_BIT::B_4096.bytes() as usize, "암호화 결과 길이 불일치");
+/// assert!(raw.private_key().len() > 0, "개인키 반환 실패");
+/// assert!(raw.private_exponent().len() > 0, "개인키 지수 반환 실패");
+/// assert!(raw.private_modulus().len() > 0, "개인키 계수 반환 실패");
+/// assert!(raw.public_key().len() > 0, "공개키 반환 실패");
+/// assert!(raw.public_exponent().len() > 0, "공개키 지수 반환 실패");
+/// assert!(raw.public_modulus().len() > 0, "공개키 계수 반환 실패");
+/// assert_eq!(raw.result().len(), RSA_BIT::B_4096.bytes() as usize, "암호화 결과 길이 불일치");
 /// ```
 pub fn rsa_encrypt_without_key(
     target: &[u8],
@@ -666,13 +809,13 @@ pub fn rsa_encrypt_without_key(
     let private_key = key_pair.private_key_to_pem();
 
     if public_key.is_err() {
-        println!("public key error: {:#?}", public_key.err());
+        eprintln!("public key error: {:#?}", public_key.err());
 
         return Err(CryptoError::from("Public key에서 오류가 발생하였습니다."));
     }
 
     if private_key.is_err() {
-        println!("private key error: {:#?}", private_key.err());
+        eprintln!("private key error: {:#?}", private_key.err());
 
         return Err(CryptoError::from("Private key에서 오류가 발생하였습니다."));
     }
@@ -699,12 +842,16 @@ pub fn rsa_encrypt_without_key(
 ///
 /// # Arguments
 ///
-/// * target - 복호화 대상
-/// * prv_key - 암호화시 생성된 개인키
+/// - `target` - 복호화 대상
+/// - `prv_key` - 암호화시 생성된 개인키
+///
+/// # Return
+///
+/// - RSA 복호화 결과 `Result<Vec<u8>, CryptoError>`
 ///
 /// # Errors
 ///
-/// * [`CryptoError`] - 암호화 처리 중 오류 발생
+/// - [CryptoError] - 암호화 처리 중 오류 발생
 ///
 /// # Examples
 ///
@@ -718,9 +865,9 @@ pub fn rsa_encrypt_without_key(
 ///
 /// let unwrapped_encrypt_result = result.unwrap();
 ///
-/// assert_eq!(unwrapped_encrypt_result.get_result().len(), RSA_BIT::B_2048.bytes() as usize, "암호화 결과 불일치");
+/// assert_eq!(unwrapped_encrypt_result.result().len(), RSA_BIT::B_2048.bytes() as usize, "암호화 결과 불일치");
 ///
-/// let decrypt_result = rsa_decrypt(unwrapped_encrypt_result.get_result(), unwrapped_encrypt_result.get_private_key());
+/// let decrypt_result = rsa_decrypt(unwrapped_encrypt_result.result(), unwrapped_encrypt_result.private_key());
 ///
 /// assert!(!decrypt_result.is_err());
 ///
@@ -733,7 +880,7 @@ pub fn rsa_decrypt(target: &[u8], prv_key: &[u8]) -> Result<Vec<u8>, CryptoError
     let private_key = Rsa::private_key_from_pem(prv_key);
 
     if private_key.is_err() {
-        println!("개인키 생성 오류: {:#?}", private_key.err());
+        eprintln!("개인키 생성 오류: {:#?}", private_key.err());
 
         return Err(CryptoError::from("개인키 오류가 발생하였습니다."));
     }
@@ -744,7 +891,7 @@ pub fn rsa_decrypt(target: &[u8], prv_key: &[u8]) -> Result<Vec<u8>, CryptoError
     let result = rsa.private_decrypt(target, &mut buffer, Padding::PKCS1);
 
     if result.is_err() {
-        println!("RSA decrypt error : {:#?}", result.err());
+        eprintln!("RSA decrypt error : {:#?}", result.err());
 
         return Err(CryptoError::from(
             "RSA 복호화 처리 중 오류가 발생하였습니다.",
@@ -760,6 +907,15 @@ pub fn rsa_decrypt(target: &[u8], prv_key: &[u8]) -> Result<Vec<u8>, CryptoError
 /// RSA 암호화 처리
 ///
 /// 암호화 대상 정보(`target`)를 `pub_key`를 이용하여 암호화 처리 한다.
+///
+/// # Arguments
+///
+/// - `target` - 암호화 대상 정보
+/// - `pub_key` - 공개키 정보
+///
+/// # Return
+///
+/// - RSA 암호화 결과 `Result<Box<u8>, CryptoError>`
 fn rsa_encrypt(target: &[u8], pub_key: &[u8]) -> Result<Box<[u8]>, CryptoError> {
     // let rsa = Rsa::generate(bit_size.bit() as u32).unwrap();
     let public_key = Rsa::public_key_from_pem(pub_key).unwrap();
@@ -768,7 +924,7 @@ fn rsa_encrypt(target: &[u8], pub_key: &[u8]) -> Result<Box<[u8]>, CryptoError> 
     let result = rsa.public_encrypt(target, &mut buffer, Padding::PKCS1);
 
     if result.is_err() {
-        println!("RSA encrypt error : {:#?}", result.err());
+        eprintln!("RSA encrypt error : {:#?}", result.err());
 
         return Err(CryptoError::from(
             "RSA 암호화 처리 중 오류가 발생하였습니다.",
@@ -964,32 +1120,32 @@ mod tests {
 
         let result2_raw = result2.unwrap();
 
-        assert!(result2_raw.get_private_key().len() > 0, "개인키 반환 실패");
+        assert!(result2_raw.private_key().len() > 0, "개인키 반환 실패");
         assert!(
-            result2_raw.get_private_exponent().len() > 0,
+            result2_raw.private_exponent().len() > 0,
             "개인키 지수 반환 실패"
         );
         assert!(
-            result2_raw.get_private_modulus().len() > 0,
+            result2_raw.private_modulus().len() > 0,
             "개인키 계수 반환 실패"
         );
-        assert!(result2_raw.get_public_key().len() > 0, "공개키 반환 실패");
+        assert!(result2_raw.public_key().len() > 0, "공개키 반환 실패");
         assert!(
-            result2_raw.get_public_exponent().len() > 0,
+            result2_raw.public_exponent().len() > 0,
             "공개키 지수 반환 실패"
         );
         assert!(
-            result2_raw.get_public_modulus().len() > 0,
+            result2_raw.public_modulus().len() > 0,
             "공개키 계수 반환 실패"
         );
-        assert!(result2_raw.get_result().len() > 0, "암호화 결과 반환 실패");
+        assert!(result2_raw.result().len() > 0, "암호화 결과 반환 실패");
         assert_eq!(
-            result2_raw.get_result().len(),
+            result2_raw.result().len(),
             RSA_BIT::B_2048.bytes() as usize,
             "암호화 결과 길이 불일치"
         );
 
-        let decrypt2 = rsa_decrypt(result2_raw.get_result(), result2_raw.get_private_key());
+        let decrypt2 = rsa_decrypt(result2_raw.result(), result2_raw.private_key());
 
         assert!(!decrypt2.is_err());
 
