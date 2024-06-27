@@ -77,6 +77,7 @@ impl DirectoryDateType {
     ///
     /// - `path` 경로 정보를 가지는 `Vec<String>`
     /// - `separator` 날짜 정보 사이에 입력될 문자열 (e.g. **-**, **_**)
+    #[inline]
     fn insert_separator(&self, path: &mut Vec<String>, separator: Option<&str>) {
         if separator.is_none() {
             return;
