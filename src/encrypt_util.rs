@@ -239,6 +239,9 @@ pub struct AESResult {
     /// 암호화 결과
     result: Vec<u8>,
 
+    /// 암호화 결과(16진수 문자열)
+    result_str: Option<String>,
+
     /// 생성된 Initialize vector
     iv: Vec<u8>,
 }
@@ -251,6 +254,12 @@ impl AESResult {
                 Some(v) => Some(Vec::from(v)),
             },
             result: Vec::from(result),
+            result_str: {
+                let v = Vec::from(result);
+                let v: Vec<String> = v.iter().map(|b| format!("{:02x}", b)).collect();
+
+                Some(v.join(""))
+            },
             iv: Vec::from(iv),
         }
     }
@@ -270,6 +279,15 @@ impl AESResult {
     #[inline]
     pub fn result(&self) -> &[u8] {
         self.result.as_ref()
+    }
+
+    /// 암호화 결과(16진수 문자열) 반환
+    #[inline]
+    pub fn result_str(&self) -> Option<&str> {
+        match &self.result_str {
+            None => None,
+            Some(v) => Some(v.as_str()),
+        }
     }
 
     /// `iv` 반환
@@ -347,7 +365,7 @@ pub fn validate_salt(salt: Option<&[u8]>) -> Result<(), InvalidArgumentError> {
 /// [AES_TYPE]을 이용한 `AES 128/256` 암호화
 ///
 /// 정상적으로 처리된 경우 [AESResult]를 반환한다. `salt`는 **8 bytes**여야 한다.
-/// 
+///
 /// ### `salt` 관련 참고 사항
 /// - [openssl::pkcs5::bytes_to_key] => `pub const PKCS5_SALT_LEN: c_int = 8;`
 /// - [Git hub comment][github_comment]
@@ -617,13 +635,29 @@ impl RSA_BIT {
 
 /// RSA 암호화 결과
 pub struct RSAResult {
+    /// 공개키
     public_key: Vec<u8>,
+
+    /// 공개키 계수(modulus)
     public_modulus: Vec<u8>,
+
+    /// 공개키 지수(exponent)
     public_exponent: Vec<u8>,
+
+    /// 개인키
     private_key: Vec<u8>,
+
+    /// 개인키 계수(modulus)
     private_modulus: Vec<u8>,
+
+    /// 개인키 지수(exponent)
     private_exponent: Vec<u8>,
+
+    /// 암호화 결과
     result: Vec<u8>,
+
+    /// 암호화 결과(16진수 문자열)
+    result_str: Option<String>,
 }
 
 impl RSAResult {
@@ -644,6 +678,12 @@ impl RSAResult {
             private_modulus: Vec::from(prv_mod),
             private_exponent: Vec::from(prv_exp),
             result: Vec::from(result),
+            result_str: {
+                let v = Vec::from(result);
+                let v: Vec<String> = v.iter().map(|b| format!("{:02x}", b)).collect();
+
+                Some(v.join(""))
+            }
         }
     }
 
@@ -686,6 +726,15 @@ impl RSAResult {
     #[inline]
     pub fn result(&self) -> &[u8] {
         self.result.as_ref()
+    }
+
+    /// 암호화 결과(16진수 문자열) 반환
+    #[inline]
+    pub fn result_str(&self) -> Option<&str> {
+        match &self.result_str {
+            None => None,
+            Some(v) => Some(v.as_str())
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1042,6 +1091,16 @@ mod tests {
         println!("unwrapped value : {:#?}", result_value);
         println!("unwrapped result value : {:#?}", result_value.result);
 
+        // result_str 비교
+        assert!(result_value.result_str().is_some());
+
+        let raw_result: Vec<String> = result_value.result().iter().map(|b| format!("{:02x}", b)).collect();
+        let raw_result: String = raw_result.join("");
+
+        assert_eq!(raw_result, result_value.result_str().unwrap());
+
+        println!("aes result str ===> {}", result_value.result_str().unwrap());
+
         let encoded_value = BASE64_STANDARD.encode(result_value.result.clone());
 
         println!("aes base64 encoded value : {:#?}", encoded_value);
@@ -1117,7 +1176,7 @@ mod tests {
         );
 
         assert!(!result1.is_err(), "RSA 8192 암호화 실패");
-
+        
         let result_raw = result1.unwrap();
 
         assert_eq!(
@@ -1133,7 +1192,7 @@ mod tests {
 
         let result2 = rsa_encrypt_without_key(PLAIN_TEXT.as_bytes(), RSA_BIT::B_2048);
 
-        assert!(!result2.is_err());
+        assert!(result2.is_ok());
 
         let result2_raw = result2.unwrap();
 
@@ -1161,6 +1220,16 @@ mod tests {
             RSA_BIT::B_2048.bytes() as usize,
             "암호화 결과 길이 불일치"
         );
+        
+        // result_str 비교
+        assert!(result2_raw.result_str().is_some());
+        
+        let raw_result: Vec<String> = result2_raw.result().iter().map(|b| format!("{:02x}", b)).collect();
+        let raw_result = raw_result.join("");
+
+        assert_eq!(raw_result, result2_raw.result_str().unwrap());
+
+        println!("rsa result str ===> {}", result2_raw.result_str().unwrap());
 
         let decrypt2 = rsa_decrypt(result2_raw.result(), result2_raw.private_key());
 
