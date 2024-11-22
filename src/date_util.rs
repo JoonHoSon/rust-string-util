@@ -1,7 +1,7 @@
 //! 날짜 관련 함수 모음
 
 use crate::error::InvalidArgumentError;
-use chrono::{DateTime, NaiveDateTime, Offset, TimeZone, Utc};
+use chrono::{DateTime, Datelike, Days, Months, NaiveDateTime, Offset, TimeZone, Utc};
 use chrono_tz::Tz;
 
 /// 지정된 날짜 및 시간 문자열을 UTC 날짜로 변경
@@ -155,10 +155,55 @@ pub fn utc_datetime_to_local(
     })
 }
 
+/// 지정한 날짜의 해당 월 마지막 날짜 반환
+///
+/// # Arguments
+///
+/// - `datetime` - 마지막 날짜를 구하고자 하는 [DateTime]
+///
+/// # Return
+///
+/// - 해당 월의 마지막 날짜
+///
+/// # Link
+///
+/// - [DateTime::checked_add_months]
+/// - [DateTime::with_day]
+/// - [DateTime::checked_sub_days]
+///
+/// # Example
+///
+/// ```rust
+/// use chrono::{DateTime, TimeZone, Utc};
+/// use cliff3_util::date_util::get_latest_day;
+///
+/// // leap month 2024
+/// // normal     2025
+///
+/// let utc_leap_datetime: DateTime<Utc> = Utc.with_ymd_and_hms(2024, 2, 11, 13, 27, 0).unwrap();
+///  let latest_day = get_latest_day(&utc_leap_datetime);
+///
+///  assert_eq!(29, latest_day);
+///
+///  let utc_datetime = Utc.with_ymd_and_hms(2025, 2, 11, 13, 27, 0).unwrap();
+///  let latest_day = get_latest_day(&utc_datetime);
+///
+///  assert_eq!(28, latest_day);
+/// ```
+pub fn get_latest_day<T: TimeZone + Sized>(datetime: &DateTime<T>) -> u32 {
+    let mut dummy = DateTime::from_timestamp(datetime.timestamp(), 0).unwrap();
+
+    dummy = dummy.checked_add_months(Months::new(1)).unwrap();
+    dummy = dummy.with_day(1).unwrap();
+    dummy = dummy.checked_sub_days(Days::new(1)).unwrap();
+
+    dummy.day()
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::date_util::{local_datetime_to_utc, utc_datetime_to_local};
-    use chrono::{Datelike, Timelike};
+    use crate::date_util::{get_latest_day, local_datetime_to_utc, utc_datetime_to_local};
+    use chrono::{DateTime, Datelike, TimeZone, Timelike, Utc};
     use chrono_tz::Tz;
 
     #[test]
@@ -214,5 +259,21 @@ mod tests {
         assert_eq!(7, result.hour());
         assert_eq!(54, result.minute());
         assert_eq!(45, result.second());
+    }
+
+    #[test]
+    fn get_latest_day_test() {
+        // leap month 2024
+        // normal     2025
+        let utc_leap_datetime: DateTime<Utc> =
+            Utc.with_ymd_and_hms(2024, 2, 11, 13, 27, 0).unwrap();
+        let latest_day = get_latest_day(&utc_leap_datetime);
+
+        assert_eq!(29, latest_day);
+
+        let utc_datetime = Utc.with_ymd_and_hms(2025, 2, 11, 13, 27, 0).unwrap();
+        let latest_day = get_latest_day(&utc_datetime);
+
+        assert_eq!(28, latest_day);
     }
 }
