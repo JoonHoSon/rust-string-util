@@ -1,7 +1,7 @@
 //! 날짜 관련 함수 모음
 
 use crate::error::InvalidArgumentError;
-use chrono::{DateTime, Datelike, Days, Months, NaiveDateTime, Offset, TimeZone, Utc};
+use chrono::{DateTime, Datelike, Days, Months, NaiveDateTime, Offset, TimeZone, Utc, Weekday};
 use chrono_tz::Tz;
 
 /// 지정된 날짜 및 시간 문자열을 UTC 날짜로 변경
@@ -200,9 +200,66 @@ pub fn get_latest_day<T: TimeZone + Sized>(datetime: &DateTime<T>) -> u32 {
     dummy.day()
 }
 
+/// 해당 일자가 포함된 주의 월요일/일요일 날짜 반환
+///
+/// # Arguments
+///
+/// - `datetime` - 찾고자 하는 주에 포함된 날짜
+///
+/// # Return
+///
+/// - (월요일, 일요일) tuple
+///
+/// # Link
+///
+/// - [DateTime::weekday]
+/// - [DateTime::checked_sub_days]
+/// - [DateTime::checked_add_days]
+/// - [Weekday]
+/// - [Weekday::days_since]
+///
+/// # Example
+///
+/// ```rust
+/// use chrono::{Utc, Datelike, TimeZone};
+/// use cliff3_util::date_util::get_week_start_end;
+/// // 1978-06-22
+/// // 일요일 : 06-25
+/// // 월요일 : 06-19
+/// let datetime = Utc.with_ymd_and_hms(1978, 6, 22, 00, 00, 00).unwrap();
+/// let (monday, sunday) = get_week_start_end(&datetime);
+///
+/// assert_eq!(1978, monday.year());
+/// assert_eq!(6, monday.month());
+/// assert_eq!(19, monday.day());
+///
+/// assert_eq!(6, sunday.month());
+/// assert_eq!(25, sunday.day());
+/// ```
+pub fn get_week_start_end<T>(datetime: &DateTime<T>) -> (DateTime<T>, DateTime<T>)
+where
+    T: TimeZone + Sized,
+{
+    let current_day_of_week = datetime.weekday();
+    let days_since = current_day_of_week.days_since(Weekday::Mon);
+    let mut monday = datetime.clone();
+
+    monday = monday
+        .checked_sub_days(Days::new(days_since as u64))
+        .unwrap();
+
+    let mut sunday = monday.clone();
+
+    sunday = sunday.checked_add_days(Days::new(6)).unwrap();
+
+    (monday, sunday)
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::date_util::{get_latest_day, local_datetime_to_utc, utc_datetime_to_local};
+    use crate::date_util::{
+        get_latest_day, get_week_start_end, local_datetime_to_utc, utc_datetime_to_local,
+    };
     use chrono::{DateTime, Datelike, TimeZone, Timelike, Utc};
     use chrono_tz::Tz;
 
@@ -275,5 +332,21 @@ mod tests {
         let latest_day = get_latest_day(&utc_datetime);
 
         assert_eq!(28, latest_day);
+    }
+
+    #[test]
+    fn get_week_start_end_test() {
+        // 1978-06-22
+        // 일요일 : 06-25
+        // 월요일 : 06-19
+        let datetime = Utc.with_ymd_and_hms(1978, 6, 22, 00, 00, 00).unwrap();
+        let (monday, sunday) = get_week_start_end(&datetime);
+
+        assert_eq!(1978, monday.year());
+        assert_eq!(6, monday.month());
+        assert_eq!(19, monday.day());
+
+        assert_eq!(6, sunday.month());
+        assert_eq!(25, sunday.day());
     }
 }
