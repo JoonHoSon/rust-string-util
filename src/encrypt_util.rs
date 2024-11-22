@@ -126,7 +126,7 @@ pub enum AES_TYPE {
 /// - [SHA_TYPE]
 /// - [MissingArgumentError]
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use cliff3_util::encrypt_util::{make_sha_hash, SHA_TYPE};
@@ -394,7 +394,7 @@ pub fn validate_salt(salt: Option<&[u8]>) -> Result<(), InvalidArgumentError> {
 /// - [AES_TYPE]
 /// - [AESResult]
 ///
-/// # Examples
+/// # Example
 ///
 /// [github_comment]: https://github.com/openssl/openssl/issues/19026#issuecomment-1251538241
 /// [openssl_enc_options]: https://www.openssl.org/docs/manmaster/man1/openssl-enc.html
@@ -497,7 +497,7 @@ pub fn aes_encrypt(
 /// - [InvalidArgumentError] - `salt`의 길이가 `8 bytes`가 아닐 경우 혹은 복호화 대상의 길이가 `0`일 경우
 /// - [CryptoError] - [openssl::pkcs5::KeyIvPair] 생성 실패
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use cliff3_util::encrypt_util::{aes_decrypt, aes_encrypt, AES_TYPE, AESResult};
@@ -846,7 +846,7 @@ pub fn generate_rsa_keypair(bit_size: RSA_BIT) -> Result<Rsa<Private>, CryptoErr
 /// - [RSAResult]
 /// - [CryptoError]
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use cliff3_util::encrypt_util::{RSA_BIT, rsa_encrypt_without_key};
@@ -919,7 +919,7 @@ pub fn rsa_encrypt_without_key(
 ///
 /// - [CryptoError] - 암호화 처리 중 오류 발생
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use cliff3_util::encrypt_util::{RSA_BIT, rsa_decrypt, rsa_encrypt_without_key, RSAResult};
