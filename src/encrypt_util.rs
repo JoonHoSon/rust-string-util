@@ -683,7 +683,7 @@ impl RSAResult {
                 let v: Vec<String> = v.iter().map(|b| format!("{:02x}", b)).collect();
 
                 Some(v.join(""))
-            }
+            },
         }
     }
 
@@ -733,7 +733,7 @@ impl RSAResult {
     pub fn result_str(&self) -> Option<&str> {
         match &self.result_str {
             None => None,
-            Some(v) => Some(v.as_str())
+            Some(v) => Some(v.as_str()),
         }
     }
 
@@ -1094,7 +1094,11 @@ mod tests {
         // result_str 비교
         assert!(result_value.result_str().is_some());
 
-        let raw_result: Vec<String> = result_value.result().iter().map(|b| format!("{:02x}", b)).collect();
+        let raw_result: Vec<String> = result_value
+            .result()
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect();
         let raw_result: String = raw_result.join("");
 
         assert_eq!(raw_result, result_value.result_str().unwrap());
@@ -1176,7 +1180,7 @@ mod tests {
         );
 
         assert!(!result1.is_err(), "RSA 8192 암호화 실패");
-        
+
         let result_raw = result1.unwrap();
 
         assert_eq!(
@@ -1220,11 +1224,15 @@ mod tests {
             RSA_BIT::B_2048.bytes() as usize,
             "암호화 결과 길이 불일치"
         );
-        
+
         // result_str 비교
         assert!(result2_raw.result_str().is_some());
-        
-        let raw_result: Vec<String> = result2_raw.result().iter().map(|b| format!("{:02x}", b)).collect();
+
+        let raw_result: Vec<String> = result2_raw
+            .result()
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect();
         let raw_result = raw_result.join("");
 
         assert_eq!(raw_result, result2_raw.result_str().unwrap());

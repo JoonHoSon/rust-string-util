@@ -148,7 +148,7 @@ pub fn generate_path(
         return Err(InvalidArgumentError::new(message.as_str()));
     }
 
-    let now = chrono::Local::now();
+    let now = Local::now();
     let dir_string = date_type.generate_path_string(&now, separator);
     let result = PathBuf::from(parent_path).join(dir_string);
 
