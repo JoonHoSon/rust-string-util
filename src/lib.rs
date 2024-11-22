@@ -1,10 +1,11 @@
-//! 암/복호화(RSA, AES), Hash(SHA 256/512), 문자열 유틸리티 함수 및 I/O 유틸리티 관련 함수 모음입니다.
+//! 암/복호화(RSA, AES), Hash(SHA 256/512), 문자열 유틸리티 함수, I/O 유틸리티 함수 및 날짜 관련 함수 모음입니다.
 //!
 //! # Feature flags
 //!
 //! - `string` - 문자열 유틸리티 함수 활성화
 //! - `encrypt` - 암복호화 및 Hash 관련 함수 활성화
 //! - `io` - I/O 유틸리티 관련 함수 활성화
+//! - `date` - 날짜(chrono) 관련 함수 활성화
 //! - `default` - 위 함수 모두 포함
 
 pub mod error;
@@ -19,3 +20,6 @@ pub mod encrypt_util;
 
 #[cfg(any(feature = "io", feature = "default"))]
 pub mod io;
+
+#[cfg(any(feature = "date", feature = "default"))]
+pub mod date_util;
