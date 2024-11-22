@@ -40,7 +40,7 @@ impl DirectoryDateType {
     ///
     /// - 생성된 경로 문자열
     ///
-    /// # Examples
+    /// # Example
     ///
     /// ```rust
     /// use cliff3_util::io::DirectoryDateType;
@@ -109,7 +109,7 @@ impl DirectoryDateType {
 /// - [InvalidArgumentError]
 /// - [std::fs::create_dir_all]
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use std::path::Path;
