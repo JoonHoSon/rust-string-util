@@ -19,7 +19,7 @@ pub mod string_util;
 pub mod encrypt_util;
 
 #[cfg(any(feature = "io", feature = "default"))]
-pub mod io;
+pub mod io_util;
 
 #[cfg(any(feature = "date", feature = "default"))]
 pub mod date_util;
