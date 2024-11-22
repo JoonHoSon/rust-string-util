@@ -40,10 +40,10 @@ impl DirectoryDateType {
     ///
     /// - 생성된 경로 문자열
     ///
-    /// # Examples
+    /// # Example
     ///
     /// ```rust
-    /// use cliff3_util::io::DirectoryDateType;
+    /// use cliff3_util::io_util::DirectoryDateType;
     /// use chrono::DateTime;
     ///
     /// let now = chrono::Local::now();
@@ -109,12 +109,12 @@ impl DirectoryDateType {
 /// - [InvalidArgumentError]
 /// - [std::fs::create_dir_all]
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use std::path::Path;
 /// use chrono::DateTime;
-/// use cliff3_util::io::{generate_path, DirectoryDateType};
+/// use cliff3_util::io_util::{generate_path, DirectoryDateType};
 ///
 /// let now = chrono::Local::now();
 /// let compare_dir_name = DirectoryDateType::YYYYMMDD.generate_path_string(&now, Some("_"));
@@ -148,7 +148,7 @@ pub fn generate_path(
         return Err(InvalidArgumentError::new(message.as_str()));
     }
 
-    let now = chrono::Local::now();
+    let now = Local::now();
     let dir_string = date_type.generate_path_string(&now, separator);
     let result = PathBuf::from(parent_path).join(dir_string);
 
@@ -169,7 +169,7 @@ pub fn generate_path(
 
 #[cfg(test)]
 mod tests {
-    use crate::io::{generate_path, DirectoryDateType};
+    use crate::io_util::{generate_path, DirectoryDateType};
     use std::path::Path;
 
     #[test]

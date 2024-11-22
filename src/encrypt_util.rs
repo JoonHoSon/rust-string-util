@@ -126,7 +126,7 @@ pub enum AES_TYPE {
 /// - [SHA_TYPE]
 /// - [MissingArgumentError]
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use cliff3_util::encrypt_util::{make_sha_hash, SHA_TYPE};
@@ -394,7 +394,7 @@ pub fn validate_salt(salt: Option<&[u8]>) -> Result<(), InvalidArgumentError> {
 /// - [AES_TYPE]
 /// - [AESResult]
 ///
-/// # Examples
+/// # Example
 ///
 /// [github_comment]: https://github.com/openssl/openssl/issues/19026#issuecomment-1251538241
 /// [openssl_enc_options]: https://www.openssl.org/docs/manmaster/man1/openssl-enc.html
@@ -497,7 +497,7 @@ pub fn aes_encrypt(
 /// - [InvalidArgumentError] - `salt`의 길이가 `8 bytes`가 아닐 경우 혹은 복호화 대상의 길이가 `0`일 경우
 /// - [CryptoError] - [openssl::pkcs5::KeyIvPair] 생성 실패
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use cliff3_util::encrypt_util::{aes_decrypt, aes_encrypt, AES_TYPE, AESResult};
@@ -683,7 +683,7 @@ impl RSAResult {
                 let v: Vec<String> = v.iter().map(|b| format!("{:02x}", b)).collect();
 
                 Some(v.join(""))
-            }
+            },
         }
     }
 
@@ -733,7 +733,7 @@ impl RSAResult {
     pub fn result_str(&self) -> Option<&str> {
         match &self.result_str {
             None => None,
-            Some(v) => Some(v.as_str())
+            Some(v) => Some(v.as_str()),
         }
     }
 
@@ -846,7 +846,7 @@ pub fn generate_rsa_keypair(bit_size: RSA_BIT) -> Result<Rsa<Private>, CryptoErr
 /// - [RSAResult]
 /// - [CryptoError]
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use cliff3_util::encrypt_util::{RSA_BIT, rsa_encrypt_without_key};
@@ -919,7 +919,7 @@ pub fn rsa_encrypt_without_key(
 ///
 /// - [CryptoError] - 암호화 처리 중 오류 발생
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use cliff3_util::encrypt_util::{RSA_BIT, rsa_decrypt, rsa_encrypt_without_key, RSAResult};
@@ -1094,7 +1094,11 @@ mod tests {
         // result_str 비교
         assert!(result_value.result_str().is_some());
 
-        let raw_result: Vec<String> = result_value.result().iter().map(|b| format!("{:02x}", b)).collect();
+        let raw_result: Vec<String> = result_value
+            .result()
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect();
         let raw_result: String = raw_result.join("");
 
         assert_eq!(raw_result, result_value.result_str().unwrap());
@@ -1176,7 +1180,7 @@ mod tests {
         );
 
         assert!(!result1.is_err(), "RSA 8192 암호화 실패");
-        
+
         let result_raw = result1.unwrap();
 
         assert_eq!(
@@ -1220,11 +1224,15 @@ mod tests {
             RSA_BIT::B_2048.bytes() as usize,
             "암호화 결과 길이 불일치"
         );
-        
+
         // result_str 비교
         assert!(result2_raw.result_str().is_some());
-        
-        let raw_result: Vec<String> = result2_raw.result().iter().map(|b| format!("{:02x}", b)).collect();
+
+        let raw_result: Vec<String> = result2_raw
+            .result()
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect();
         let raw_result = raw_result.join("");
 
         assert_eq!(raw_result, result2_raw.result_str().unwrap());
