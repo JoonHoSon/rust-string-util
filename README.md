@@ -37,6 +37,13 @@ $ sudo apt install build-essential pkg-config libssl-dev
 
 # 변경 사항
 
+## v0.2.3
+
+### date_util
+
+- get_latest_day 추가
+- get_week_start_end 추가
+
 ## v0.2.2
 
 ### date_util 추가
