@@ -221,12 +221,12 @@ pub fn get_latest_day<T: TimeZone + Sized>(datetime: &DateTime<T>) -> u32 {
 /// # Example
 ///
 /// ```rust
-/// use chrono::{Utc, Datelike, TimeZone};
+/// use chrono::{Utc, Datelike, TimeZone, NaiveDate, NaiveTime, NaiveDateTime};
 /// use cliff3_util::date_util::get_week_start_end;
 /// // 1978-06-22
 /// // 일요일 : 06-25
 /// // 월요일 : 06-19
-/// let datetime = Utc.with_ymd_and_hms(1978, 6, 22, 00, 00, 00).unwrap();
+/// let datetime = NaiveDateTime::new(NaiveDate::from_ymd_opt(1978, 6, 22).unwrap(), NaiveTime::from_hms_opt(0, 0, 0).unwrap());
 /// let (monday, sunday) = get_week_start_end(&datetime);
 ///
 /// assert_eq!(1978, monday.year());
@@ -236,10 +236,7 @@ pub fn get_latest_day<T: TimeZone + Sized>(datetime: &DateTime<T>) -> u32 {
 /// assert_eq!(6, sunday.month());
 /// assert_eq!(25, sunday.day());
 /// ```
-pub fn get_week_start_end<T>(datetime: &DateTime<T>) -> (DateTime<T>, DateTime<T>)
-where
-    T: TimeZone + Sized,
-{
+pub fn get_week_start_end(datetime: &NaiveDateTime) -> (NaiveDateTime, NaiveDateTime) {
     let current_day_of_week = datetime.weekday();
     let days_since = current_day_of_week.days_since(Weekday::Mon);
     let mut monday = datetime.clone();
@@ -260,7 +257,9 @@ mod tests {
     use crate::date_util::{
         get_latest_day, get_week_start_end, local_datetime_to_utc, utc_datetime_to_local,
     };
-    use chrono::{DateTime, Datelike, TimeZone, Timelike, Utc};
+    use chrono::{
+        DateTime, Datelike, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Timelike, Utc,
+    };
     use chrono_tz::Tz;
 
     #[test]
@@ -339,7 +338,10 @@ mod tests {
         // 1978-06-22
         // 일요일 : 06-25
         // 월요일 : 06-19
-        let datetime = Utc.with_ymd_and_hms(1978, 6, 22, 00, 00, 00).unwrap();
+        let datetime = NaiveDateTime::new(
+            NaiveDate::from_ymd_opt(1978, 6, 22).unwrap(),
+            NaiveTime::from_hms_opt(0, 0, 0).unwrap(),
+        );
         let (monday, sunday) = get_week_start_end(&datetime);
 
         assert_eq!(1978, monday.year());
