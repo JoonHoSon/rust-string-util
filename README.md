@@ -37,6 +37,14 @@ $ sudo apt install build-essential pkg-config libssl-dev
 
 # 변경 사항
 
+## 0.2.5
+
+- 특수문자를 포함하는 무작위 문자열 생성 함수 추가(generate_random_string_with_spec)
+
+## 0.2.4
+
+- get_week_start_end 수정
+
 ## v0.2.3
 
 ### date_util
