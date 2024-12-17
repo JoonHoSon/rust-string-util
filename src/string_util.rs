@@ -21,6 +21,15 @@ lazy_static! {
         "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
     ];
 
+    static ref RANDOM_SOURCE_SPEC: Vec<&'static str> = vec![
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "a", "b", "c", "d", "e", "f", "g",
+        "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y",
+        "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q",
+        "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "~", "`", "!", "@", "#", "$", "%", "^", "&",
+        "*", "(", ")", "-", "_", "=", "+", "[", "{", "]", "}", ";", ":", "'", "\"", ",", "<", ".",
+        ">", "/", "?", "\\"
+    ];
+
     // -----------------------------------------------------------------------------------------------------------------
     // 한글 관련
     // -----------------------------------------------------------------------------------------------------------------
@@ -431,6 +440,8 @@ pub fn to_hex(target: Option<&[u8]>, to_uppercase: bool) -> Option<String> {
 
 /// 지정된 길이만큼의 무작위 문자열을 생성
 ///
+/// 문자열 원본은 [RANDOM_SOURCE]로 숫자와 알파벳 대/소문자만을 포함한다.
+///
 /// # Arguments
 ///
 /// - `length` 생성하고자 하는 문자열의 길이
@@ -446,7 +457,36 @@ pub fn generate_random_string(length: u32) -> Option<String> {
 
     while count < length {
         let index = random.gen_range(0..=source_size);
+        
         result.push(RANDOM_SOURCE.get(index).unwrap());
+
+        count += 1;
+    }
+
+    Some(result.join(""))
+}
+
+/// 지정된 길이만큼의 무작위 문자열을 생성
+///
+/// 문자열 원본은 [RANDOM_SOURCE_SPEC]으로 숫자, 알파벳 대/소문자 및 특수문자를 포함한다.
+///
+/// # Arguments
+///
+/// - `length` - 생성하고자 하는 문자열의 길이
+///
+/// # Return
+///
+/// - 생성된 문자열
+pub fn generate_random_string_with_spec(length: u32) -> Option<String> {
+    let mut random = rand::thread_rng();
+    let mut count: u32 = 0;
+    let mut result: Vec<&str> = vec![];
+    let source_size = RANDOM_SOURCE_SPEC.len() - 1;
+
+    while count < length {
+        let index = random.gen_range(0..=source_size);
+        
+        result.push(RANDOM_SOURCE_SPEC.get(index).unwrap());
 
         count += 1;
     }
@@ -696,8 +736,20 @@ mod tests {
         assert_eq!(length, result.len() as u32);
 
         println!(
-            "--------------------------\nrandom string result2: {}--------------------\n",
+            "--------------------------\nrandom string result2: {}\n--------------------\n",
             result
         );
+
+        loop {
+            let result: Option<String> = generate_random_string_with_spec(40);
+
+            if result.is_none() {
+                continue;
+            }
+
+            if result.as_ref().unwrap().contains("!") {
+                break;
+            }
+        }
     }
 }
